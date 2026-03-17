@@ -8,6 +8,9 @@ import PlaylistSvg from "@/assets/icons/playlist-1.svg";
 import SearchSvg from "@/assets/icons/search.svg";
 import SettingsSvg from "@/assets/icons/settings.svg";
 import HomeSvg from "@/assets/icons/home.svg";
+import DownloadSvg from "@/assets/icons/add_to_queue.svg";
+import RadioSvg from "@/assets/icons/radio.svg";
+import UploadSvg from "@/assets/icons/upload.svg";
 
 const folder = {
   name: "folders",
@@ -34,6 +37,24 @@ const home = {
   icon: HomeSvg,
 };
 
+const universalDownloader = {
+  name: "Music Downloader",
+  route_name: Routes.UniversalMusicDownloader,
+  icon: DownloadSvg,
+};
+
+const musicCatalog = {
+  name: "Music Catalog",
+  route_name: Routes.MusicCatalogBrowser,
+  icon: RadioSvg,
+};
+
+const musicUpload = {
+  name: "Upload Music",
+  route_name: Routes.MusicUpload,
+  icon: UploadSvg,
+};
+
 export const menus = [
   home,
   folder,
@@ -49,6 +70,9 @@ export const menus = [
   },
   favorites,
   playlists,
+  universalDownloader,
+  musicCatalog,
+  musicUpload,
   {
     separator: true,
   },
@@ -62,4 +86,4 @@ export const menus = [
   },
 ];
 
-export const topnavitems = [home, folder, favorites, playlists];
+export const topnavitems = [home, folder, favorites, playlists, universalDownloader, musicCatalog, musicUpload];

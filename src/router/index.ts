@@ -28,6 +28,9 @@ const StatsView = () => import('@/views/Stats/main.vue')
 const MixView = () => import('@/views/MixView.vue')
 const MixListView = () => import('@/views/MixListView.vue')
 const Collection = () => import('@/views/Collections/Collection.vue')
+const UniversalMusicDownloader = () => import('@/views/UniversalMusicDownloader.vue')
+const MusicCatalogBrowser = () => import('@/components/MusicCatalogBrowser.vue')
+const MusicUpload = () => import('@/components/MusicUpload.vue')
 
 const folder = {
     path: '/folder/:path',
@@ -208,6 +211,24 @@ const PageView = {
     component: Collection,
 }
 
+const universalDownloader = {
+    path: '/music-downloader',
+    name: 'UniversalMusicDownloader',
+    component: UniversalMusicDownloader,
+}
+
+const musicCatalog = {
+    path: '/catalog',
+    name: 'MusicCatalogBrowser',
+    component: MusicCatalogBrowser,
+}
+
+const musicUpload = {
+    path: '/upload',
+    name: 'MusicUpload',
+    component: MusicUpload,
+}
+
 const routes = [
     folder,
     playlists,
@@ -232,6 +253,9 @@ const routes = [
     Mix,
     MixList,
     PageView,
+    universalDownloader,
+    musicCatalog,
+    musicUpload,
 ]
 
 const Routes = {
@@ -258,6 +282,9 @@ const Routes = {
     Mix: Mix.name,
     MixList: MixList.name,
     Page: PageView.name,
+    UniversalMusicDownloader: universalDownloader.name,
+    MusicCatalogBrowser: musicCatalog.name,
+    MusicUpload: musicUpload.name,
 }
 
 const router = createRouter({
