@@ -1,5 +1,5 @@
 <template>
-    <!-- TODO:  -->
+    <!-- Future enhancement: Add keyboard navigation support for context menu items -->
     <div
         ref="parentRef"
         class="context-item"

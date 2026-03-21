@@ -1,7 +1,7 @@
 <template>
     <div class="sidenav noSelect">
         <div class="sidenav_header">
-            <a @click="closeSidenav" class="sidenav_logo" href="#">
+            <a class="sidenav_logo" href="#" @click="closeSidenav">
                 <div class="art"><LogoSvg /></div>
                 <div class="title">Swing Music</div>
             </a>

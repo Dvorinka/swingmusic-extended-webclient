@@ -26,3 +26,12 @@ export async function getHomePageData(limit: number) {
 
     return data
 }
+
+export async function getHomeRecommendations() {
+    const { data } = await useAxios({
+        url: '/api/catalog/home/recommendations',
+        method: 'GET',
+    })
+
+    return data
+}

@@ -1,14 +1,14 @@
 <template>
   <div
     class="index t-center ellip"
+    :class="{ 'ready': !showInlineFavIcon }"
     @click.prevent="$emit('addToFav')"
     @dblclick.prevent.stop="() => {}"
-    :class="{ 'ready': !showInlineFavIcon }"
   >
     <div class="text">
       {{ index }}
     </div>
-    <div class="heart-icon" v-if="!showInlineFavIcon">
+    <div v-if="!showInlineFavIcon" class="heart-icon">
       <HeartSvg :state="is_fav" :no_emit="true" />
     </div>
   </div>

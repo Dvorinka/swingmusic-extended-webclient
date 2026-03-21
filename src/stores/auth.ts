@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 import {
     addGuestUser,
     addNewUser,
+    bootstrapOwner,
     deleteUser,
     getLoggedInUser,
     loginUser,
@@ -57,9 +58,22 @@ export default defineStore('authStore', {
                 this.showSuccess(res.data.msg)
                 modal.hideModal()
                 window.location.reload()
+                return true
             } else {
                 this.showResMsgOrGenericError(res)
+                return false
             }
+        },
+        async bootstrapOwner(username: string, password: string, rootDirs: string[] = []) {
+            const res = await bootstrapOwner(username, password, rootDirs)
+
+            if (res.status === 200) {
+                this.showSuccess(res.data.msg || 'Owner account created')
+                return true
+            }
+
+            this.showResMsgOrGenericError(res)
+            return false
         },
         async logout() {
             await logoutUser()

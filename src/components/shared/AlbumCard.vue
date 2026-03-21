@@ -5,8 +5,8 @@
             params: { albumhash: album.albumhash },
         }"
         class="album-card"
-        @contextmenu.prevent="showMenu"
         :class="{ 'context-menu-open': contextMenuFlag }"
+        @contextmenu.prevent="showMenu"
     >
         <div class="with-img rounded-sm no-scroll">
             <div

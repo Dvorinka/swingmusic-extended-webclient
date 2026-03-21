@@ -1,5 +1,4 @@
 import { Routes } from "@/router";
-import useDialog from "@/stores/modal";
 import useSearch from "@/stores/search";
 
 import FolderSvg from "@/assets/icons/folder-1.svg";
@@ -10,12 +9,10 @@ import SettingsSvg from "@/assets/icons/settings.svg";
 import HomeSvg from "@/assets/icons/home.svg";
 import DownloadSvg from "@/assets/icons/add_to_queue.svg";
 import RadioSvg from "@/assets/icons/radio.svg";
-import UploadSvg from "@/assets/icons/upload.svg";
 
-const folder = {
-  name: "folders",
-  route_name: Routes.folder,
-  params: { path: "$home" },
+const library = {
+  name: "Your Library",
+  route_name: Routes.library,
   icon: FolderSvg,
 };
 
@@ -49,15 +46,9 @@ const musicCatalog = {
   icon: RadioSvg,
 };
 
-const musicUpload = {
-  name: "Upload Music",
-  route_name: Routes.MusicUpload,
-  icon: UploadSvg,
-};
-
 export const menus = [
   home,
-  folder,
+  library,
   {
     name: "search",
     route_name: Routes.search,
@@ -72,18 +63,25 @@ export const menus = [
   playlists,
   universalDownloader,
   musicCatalog,
-  musicUpload,
   {
     separator: true,
   },
   {
     name: "settings",
-    route_name: null,
+    route_name: Routes.settings,
+    params: { tab: "general" },
     icon: SettingsSvg,
-    action: () => {
-      useDialog().showSettingsModal()
-    }
   },
 ];
 
-export const topnavitems = [home, folder, favorites, playlists, universalDownloader, musicCatalog, musicUpload];
+export const topnavitems = [
+  home,
+  {
+    name: "search",
+    route_name: Routes.search,
+    params: { page: "top" },
+    query: () => ({ q: useSearch().query }),
+    icon: SearchSvg,
+  },
+  library
+];

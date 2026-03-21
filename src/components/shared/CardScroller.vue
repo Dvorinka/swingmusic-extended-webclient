@@ -193,9 +193,12 @@ function getProps(item: { type: string; item?: any; with_helptext?: boolean }) {
     }
 
     .hlistitem {
-        // TODO: Handle when there's no time
-        // INFO: Set the time to display none by default
+        // Handle missing time - hide time element when empty or undefined
+        .rhelp .time:empty {
+            display: none;
+        }
 
+        // INFO: Set the time to display none by default
         .rhelp .time {
             display: none;
         }

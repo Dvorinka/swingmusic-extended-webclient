@@ -1,11 +1,11 @@
 <template>
-  <div class="enhanced-virtual-list" ref="containerRef">
+  <div ref="containerRef" class="enhanced-virtual-list">
     <!-- Virtual scrolling container -->
     <div 
+      ref="viewportRef"
       class="virtual-scroll-viewport"
       :style="{ height: viewportHeight + 'px' }"
       @scroll="handleScroll"
-      ref="viewportRef"
     >
       <!-- Spacer for total height -->
       <div 
@@ -26,11 +26,11 @@
           <div
             v-for="item in visibleItems"
             :key="item.id"
+            ref="itemRefs"
             class="virtual-list-item"
             :class="{ 'item-loading': item.loaded }"
             :style="{ height: itemHeight + 'px' }"
             :data-index="item.index"
-            ref="itemRefs"
           >
             <!-- Track item template -->
             <div v-if="item.item_type === 'track'" class="track-item">
@@ -40,9 +40,9 @@
                   :src="item.image_url"
                   :alt="item.title"
                   class="track-cover"
+                  loading="lazy"
                   @load="handleImageLoad(item)"
                   @error="handleImageError(item)"
-                  loading="lazy"
                 />
                 <div v-else class="track-cover-placeholder">
                   <Music />
@@ -55,13 +55,13 @@
               </div>
               
               <div class="track-actions">
-                <button @click="playTrack(item)" class="play-button">
+                <button class="play-button" @click="playTrack(item)">
                   <Play />
                 </button>
-                <button @click="addToQueue(item)" class="queue-button">
+                <button class="queue-button" @click="addToQueue(item)">
                   <Plus />
                 </button>
-                <button @click="showTrackMenu(item)" class="menu-button">
+                <button class="menu-button" @click="showTrackMenu(item)">
                   <MoreVertical />
                 </button>
               </div>
@@ -75,9 +75,9 @@
                   :src="item.image_url"
                   :alt="item.title"
                   class="album-cover"
+                  loading="lazy"
                   @load="handleImageLoad(item)"
                   @error="handleImageError(item)"
-                  loading="lazy"
                 />
                 <div v-else class="album-cover-placeholder">
                   <Disc />
@@ -90,10 +90,10 @@
               </div>
               
               <div class="album-actions">
-                <button @click="playAlbum(item)" class="play-button">
+                <button class="play-button" @click="playAlbum(item)">
                   <Play />
                 </button>
-                <button @click="downloadAlbum(item)" class="download-button">
+                <button class="download-button" @click="downloadAlbum(item)">
                   <Download />
                 </button>
               </div>
@@ -107,9 +107,9 @@
                   :src="item.image_url"
                   :alt="item.title"
                   class="artist-avatar"
+                  loading="lazy"
                   @load="handleImageLoad(item)"
                   @error="handleImageError(item)"
-                  loading="lazy"
                 />
                 <div v-else class="artist-avatar-placeholder">
                   <User />
@@ -122,10 +122,10 @@
               </div>
               
               <div class="artist-actions">
-                <button @click="playArtist(item)" class="play-button">
+                <button class="play-button" @click="playArtist(item)">
                   <Play />
                 </button>
-                <button @click="followArtist(item)" class="follow-button">
+                <button class="follow-button" @click="followArtist(item)">
                   <Heart />
                 </button>
               </div>

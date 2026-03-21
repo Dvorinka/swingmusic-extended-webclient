@@ -3,9 +3,9 @@
         <!-- <div class="title">{{ name }}</div> -->
         <div class="group">
             <div
-                class="group-item"
                 v-for="g in groups"
                 :key="g"
+                class="group-item"
                 :class="g === name ? 'active' : ''"
                 @click="$emit('changeGroup', g)"
             >
@@ -14,9 +14,9 @@
         </div>
         <div class="period">
             <div
-                class="period-item"
                 v-for="p in periods"
                 :key="p"
+                class="period-item"
                 :class="p === period ? 'active' : ''"
                 @click="$emit('changePeriod', p)"
             >

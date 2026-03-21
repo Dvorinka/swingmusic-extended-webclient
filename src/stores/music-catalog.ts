@@ -14,6 +14,17 @@ export interface CatalogItem {
   image_url?: string
   release_date?: string
   explicit: boolean
+  trackhash?: string
+  availability?: {
+    state: string
+    candidate_count?: number
+    download_action?: { type: string; label: string; enabled: boolean }
+    quality?: string | null
+    quality_badge?: { label: string; color: string }
+  }
+  download_action?: { type: string; label: string; enabled: boolean }
+  quality_badge?: { label: string; color: string }
+  is_available?: boolean
   data?: any
 }
 
@@ -26,7 +37,10 @@ export interface ArtistInfo {
   genres?: string[]
   top_tracks?: CatalogItem[]
   albums?: CatalogItem[]
+  discography_sections?: Record<string, CatalogItem[]>
   related_artists?: any[]
+  this_is_artist?: CatalogItem[]
+  artist_radio?: CatalogItem[]
 }
 
 export interface SearchResult {

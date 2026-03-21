@@ -3,8 +3,8 @@
         <div class="text">
             <div>{{ title }}</div>
             <div
-                class="desc"
                 v-if="desc"
+                class="desc"
             >
                 {{ desc }}
             </div>

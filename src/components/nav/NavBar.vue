@@ -18,7 +18,7 @@
             <div class="bar"></div>
             <div class="bar"></div>
         </div>
-        <NavSidenav @close="toggleSidenav" :class="{ active: sidenavActive }" />
+        <NavSidenav :class="{ active: sidenavActive }" @close="toggleSidenav" />
         <div class="dimmer noSelect" :class="{ active: sidenavActive }" @click="toggleSidenav"></div>
         <RouterLink v-if="settings.is_alt_layout" to="/" class="logo rounded-sm"><LogoSvg /></RouterLink>
         <div v-if="settings.is_alt_layout || !settings.use_sidebar || !xl" class="right">

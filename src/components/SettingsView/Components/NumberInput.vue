@@ -1,6 +1,6 @@
 <template>
     <div class="freenuminput rounded-sm">
-        <div class="spinner" v-if="loading"></div>
+        <div v-if="loading" class="spinner"></div>
         <input type="number" :value="props.value" @change="handleInput" />
     </div>
 </template>

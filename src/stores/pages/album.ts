@@ -12,7 +12,59 @@ import { useFuse } from '@/utils'
 import setColorsToStore from '@/utils/colortools/setColorsToStore'
 import { useToast } from '../notification'
 
-interface Disc {
+/**
+ * Disc class for managing album disc data
+ * Provides helper methods for disc operations
+ */
+class Disc {
+    public tracks: Track[]
+    public discNumber: number
+
+    constructor(discNumber: number, tracks: Track[] = []) {
+        this.discNumber = discNumber
+        this.tracks = tracks
+    }
+
+    /**
+     * Add a track to this disc
+     */
+    addTrack(track: Track): void {
+        this.tracks.push(track)
+    }
+
+    /**
+     * Get the duration of this disc in seconds
+     */
+    getDuration(): number {
+        return this.tracks.reduce((total, track) => total + (track.duration || 0), 0)
+    }
+
+    /**
+     * Get formatted duration string (e.g., "3:45")
+     */
+    getFormattedDuration(): string {
+        const duration = this.getDuration()
+        const minutes = Math.floor(duration / 60)
+        const seconds = Math.floor(duration % 60)
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`
+    }
+
+    /**
+     * Check if this disc has any tracks
+     */
+    hasTracks(): boolean {
+        return this.tracks.length > 0
+    }
+
+    /**
+     * Get track count for this disc
+     */
+    getTrackCount(): number {
+        return this.tracks.length
+    }
+}
+
+interface DiscMap {
     [key: string]: Track[]
 }
 
@@ -29,9 +81,9 @@ function sortByTrackNumber(tracks: Track[]) {
 /**
  *
  * @param tracks The raw tracklist from the server
- * @returns A list of `Disc` objects
+ * @returns A list of `DiscMap` objects
  */
-function createDiscs(tracks: Track[]) {
+function createDiscs(tracks: Track[]): DiscMap {
     return tracks.reduce((group, track) => {
         const { disc } = track
 
@@ -39,7 +91,7 @@ function createDiscs(tracks: Track[]) {
         group[disc].push(track)
 
         return group
-    }, {} as Disc)
+    }, {} as DiscMap)
 }
 
 export default defineStore('album', {
@@ -60,7 +112,7 @@ export default defineStore('album', {
         otherVersions: <Album[]>[],
         similarAlbums: <Album[]>[],
         bio: null,
-        discs: <Disc>{},
+        discs: <DiscMap>{},
         colors: {
             bg: '',
             btn: '',
@@ -195,5 +247,3 @@ export default defineStore('album', {
         },
     },
 })
-
-// TODO: Implement Disc interface using a class

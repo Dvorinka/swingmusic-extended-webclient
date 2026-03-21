@@ -16,17 +16,17 @@ including followed artists, recent releases, settings, and notifications.
         </h2>
         <div class="header-actions">
           <button 
-            @click="refreshData" 
-            :disabled="loading"
+            :disabled="loading" 
             class="refresh-btn"
             title="Refresh updates"
+            @click="refreshData"
           >
             <Icon name="refresh-cw" :class="{ 'animate-spin': loading }" />
           </button>
           <button 
-            @click="showSettings = true"
             class="settings-btn"
             title="Update settings"
+            @click="showSettings = true"
           >
             <Icon name="settings" />
           </button>
@@ -57,7 +57,7 @@ including followed artists, recent releases, settings, and notifications.
     <div v-if="showSettings" class="settings-section">
       <div class="settings-header">
         <h3>Update Settings</h3>
-        <button @click="showSettings = false" class="close-btn">
+        <button class="close-btn" @click="showSettings = false">
           <Icon name="x" />
         </button>
       </div>
@@ -66,10 +66,10 @@ including followed artists, recent releases, settings, and notifications.
         <div class="setting-item">
           <label class="setting-label">
             <input 
-              type="checkbox" 
-              v-model="settings.enableArtistMonitoring"
-              @change="updateSettings"
+              v-model="settings.enableArtistMonitoring" 
+              type="checkbox"
               class="setting-checkbox"
+              @change="updateSettings"
             />
             Enable artist monitoring
           </label>
@@ -79,10 +79,10 @@ including followed artists, recent releases, settings, and notifications.
         <div class="setting-item">
           <label class="setting-label">
             <input 
-              type="checkbox" 
-              v-model="settings.autoDownloadFavorites"
-              @change="updateSettings"
+              v-model="settings.autoDownloadFavorites" 
+              type="checkbox"
               class="setting-checkbox"
+              @change="updateSettings"
             />
             Auto-download favorite artists' releases
           </label>
@@ -92,10 +92,10 @@ including followed artists, recent releases, settings, and notifications.
         <div class="setting-item">
           <label class="setting-label">
             <input 
-              type="checkbox" 
-              v-model="settings.enableNotifications"
-              @change="updateSettings"
+              v-model="settings.enableNotifications" 
+              type="checkbox"
               class="setting-checkbox"
+              @change="updateSettings"
             />
             Enable update notifications
           </label>
@@ -106,8 +106,8 @@ including followed artists, recent releases, settings, and notifications.
           <label class="setting-label">Check Frequency</label>
           <select 
             v-model="settings.checkFrequency" 
-            @change="updateSettings"
             class="setting-select"
+            @change="updateSettings"
           >
             <option value="hourly">Hourly</option>
             <option value="daily">Daily</option>
@@ -120,8 +120,8 @@ including followed artists, recent releases, settings, and notifications.
           <label class="setting-label">Preferred Quality</label>
           <select 
             v-model="settings.qualityPreference" 
-            @change="updateSettings"
             class="setting-select"
+            @change="updateSettings"
           >
             <option value="flac">FLAC (Lossless)</option>
             <option value="mp3_320">MP3 320kbps</option>
@@ -134,10 +134,10 @@ including followed artists, recent releases, settings, and notifications.
         <div class="setting-item">
           <label class="setting-label">
             <input 
-              type="checkbox" 
-              v-model="settings.excludeExplicit"
-              @change="updateSettings"
+              v-model="settings.excludeExplicit" 
+              type="checkbox"
               class="setting-checkbox"
+              @change="updateSettings"
             />
             Exclude explicit content
           </label>
@@ -151,14 +151,14 @@ including followed artists, recent releases, settings, and notifications.
       <div class="section-header">
         <h3>Recent Updates</h3>
         <div class="section-actions">
-          <select v-model="updatesFilter" @change="loadUpdates" class="filter-select">
+          <select v-model="updatesFilter" class="filter-select" @change="loadUpdates">
             <option value="all">All Updates</option>
             <option value="unread">Unread Only</option>
             <option value="album">Albums</option>
             <option value="single">Singles</option>
             <option value="ep">EPs</option>
           </select>
-          <button @click="markAllRead" class="mark-read-btn">
+          <button class="mark-read-btn" @click="markAllRead">
             Mark All Read
           </button>
         </div>
@@ -173,7 +173,7 @@ including followed artists, recent releases, settings, and notifications.
         <Icon name="music" class="empty-icon" />
         <h3>No new updates</h3>
         <p>Follow artists to see their new releases here</p>
-        <button @click="showArtistSearch = true" class="primary-btn">
+        <button class="primary-btn" @click="showArtistSearch = true">
           Find Artists to Follow
         </button>
       </div>
@@ -215,37 +215,37 @@ including followed artists, recent releases, settings, and notifications.
           <div class="update-actions">
             <button 
               v-if="!update.downloaded"
-              @click="downloadRelease(update)"
               :disabled="update.downloadStatus === 'downloading'"
               class="download-btn primary"
               title="Download release"
+              @click="downloadRelease(update)"
             >
               <Icon name="download" />
               Download
             </button>
             
             <button 
-              @click="playPreview(update)"
               class="preview-btn"
               title="Play preview"
+              @click="playPreview(update)"
             >
               <Icon name="play" />
               Preview
             </button>
             
             <button 
-              @click="openSpotify(update.spotifyUrl)"
               class="spotify-btn"
               title="Open in Spotify"
+              @click="openSpotify(update.spotifyUrl)"
             >
               <Icon name="external-link" />
             </button>
             
             <button 
               v-if="!update.read"
-              @click="markAsRead(update)"
               class="mark-read-btn"
               title="Mark as read"
+              @click="markAsRead(update)"
             >
               <Icon name="check" />
             </button>
@@ -259,11 +259,11 @@ including followed artists, recent releases, settings, and notifications.
       <div class="section-header">
         <h3>Followed Artists</h3>
         <div class="section-actions">
-          <button @click="showArtistSearch = true" class="primary-btn">
+          <button class="primary-btn" @click="showArtistSearch = true">
             <Icon name="plus" />
             Follow Artists
           </button>
-          <button @click="exportFollowedArtists" class="secondary-btn">
+          <button class="secondary-btn" @click="exportFollowedArtists">
             <Icon name="download" />
             Export
           </button>
@@ -279,7 +279,7 @@ including followed artists, recent releases, settings, and notifications.
         <Icon name="users" class="empty-icon" />
         <h3>No followed artists</h3>
         <p>Start following artists to get updates about their new releases</p>
-        <button @click="showArtistSearch = true" class="primary-btn">
+        <button class="primary-btn" @click="showArtistSearch = true">
           Find Artists to Follow
         </button>
       </div>
@@ -307,18 +307,18 @@ including followed artists, recent releases, settings, and notifications.
           
           <div class="artist-actions">
             <button 
-              @click="toggleAutoDownload(artist)"
               :class="{ 'active': artist.autoDownload }"
               class="auto-download-toggle"
               :title="artist.autoDownload ? 'Disable auto-download' : 'Enable auto-download'"
+              @click="toggleAutoDownload(artist)"
             >
               <Icon name="download" />
             </button>
             
             <button 
-              @click="showArtistOptions(artist)"
               class="options-btn"
               title="Artist options"
+              @click="showArtistOptions(artist)"
             >
               <Icon name="more-vertical" />
             </button>
@@ -332,7 +332,7 @@ including followed artists, recent releases, settings, and notifications.
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>Find Artists to Follow</h3>
-          <button @click="showArtistSearch = false" class="close-btn">
+          <button class="close-btn" @click="showArtistSearch = false">
             <Icon name="x" />
           </button>
         </div>
@@ -342,15 +342,15 @@ including followed artists, recent releases, settings, and notifications.
             <Icon name="search" class="search-icon" />
             <input 
               v-model="artistSearchQuery"
-              @input="searchArtists"
-              @keyup.enter="searchArtists"
               placeholder="Search for artists..."
               class="search-field"
+              @input="searchArtists"
+              @keyup.enter="searchArtists"
             />
             <button 
-              @click="searchArtists"
               :disabled="!artistSearchQuery || artistSearching"
               class="search-btn"
+              @click="searchArtists"
             >
               Search
             </button>
@@ -381,9 +381,9 @@ including followed artists, recent releases, settings, and notifications.
               </div>
               
               <button 
-                @click="followArtist(artist)"
                 :disabled="artist.following"
                 class="follow-btn primary"
+                @click="followArtist(artist)"
               >
                 {{ artist.following ? 'Following' : 'Follow' }}
               </button>
@@ -403,7 +403,7 @@ including followed artists, recent releases, settings, and notifications.
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>{{ selectedArtist?.name }} - Options</h3>
-          <button @click="showOptionsModal = false" class="close-btn">
+          <button class="close-btn" @click="showOptionsModal = false">
             <Icon name="x" />
           </button>
         </div>
@@ -413,8 +413,8 @@ including followed artists, recent releases, settings, and notifications.
             <label class="option-label">Follow Level</label>
             <select 
               v-model="selectedArtistFollowLevel" 
-              @change="updateArtistFollowLevel"
               class="option-select"
+              @change="updateArtistFollowLevel"
             >
               <option value="casual">Casual</option>
               <option value="followed">Followed</option>
@@ -425,10 +425,10 @@ including followed artists, recent releases, settings, and notifications.
           <div class="option-item">
             <label class="option-label">
               <input 
-                type="checkbox" 
-                v-model="selectedArtistAutoDownload"
-                @change="updateArtistAutoDownload"
+                v-model="selectedArtistAutoDownload" 
+                type="checkbox"
                 class="option-checkbox"
+                @change="updateArtistAutoDownload"
               />
               Auto-download new releases
             </label>
@@ -438,8 +438,8 @@ including followed artists, recent releases, settings, and notifications.
             <label class="option-label">Preferred Quality</label>
             <select 
               v-model="selectedArtistQuality" 
-              @change="updateArtistQuality"
               class="option-select"
+              @change="updateArtistQuality"
             >
               <option value="flac">FLAC (Lossless)</option>
               <option value="mp3_320">MP3 320kbps</option>
@@ -449,7 +449,7 @@ including followed artists, recent releases, settings, and notifications.
           </div>
           
           <div class="option-actions">
-            <button @click="unfollowArtist" class="danger-btn">
+            <button class="danger-btn" @click="unfollowArtist">
               <Icon name="user-x" />
               Unfollow Artist
             </button>

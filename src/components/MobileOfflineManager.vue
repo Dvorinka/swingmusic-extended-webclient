@@ -22,14 +22,14 @@ This component provides comprehensive mobile offline management including:
       </div>
       
       <!-- Device Selector -->
-      <div class="device-selector" v-if="devices.length > 0">
+      <div v-if="devices.length > 0" class="device-selector">
         <label class="selector-label">Device:</label>
-        <select v-model="selectedDeviceId" @change="loadDeviceData" class="device-select">
+        <select v-model="selectedDeviceId" class="device-select" @change="loadDeviceData">
           <option v-for="device in devices" :key="device.device_id" :value="device.device_id">
             {{ device.name }} ({{ device.type }})
           </option>
         </select>
-        <button @click="showAddDeviceModal = true" class="add-device-btn">
+        <button class="add-device-btn" @click="showAddDeviceModal = true">
           <Icon name="plus" />
           Add Device
         </button>
@@ -42,7 +42,7 @@ This component provides comprehensive mobile offline management including:
         <Icon name="smartphone" class="no-devices-icon" />
         <h2>No Mobile Devices Registered</h2>
         <p>Register your mobile device to start building your offline music library</p>
-        <button @click="showAddDeviceModal = true" class="add-device-primary-btn">
+        <button class="add-device-primary-btn" @click="showAddDeviceModal = true">
           <Icon name="plus" />
           Register Mobile Device
         </button>
@@ -67,11 +67,11 @@ This component provides comprehensive mobile offline management including:
             </div>
           </div>
           <div class="device-actions">
-            <button @click="forceSyncNow" :disabled="syncing" class="sync-btn">
+            <button :disabled="syncing" class="sync-btn" @click="forceSyncNow">
               <Icon name="refresh-cw" :class="{ 'animate-spin': syncing }" />
               {{ syncing ? 'Syncing...' : 'Force Sync' }}
             </button>
-            <button @click="showDeviceSettings = true" class="settings-btn">
+            <button class="settings-btn" @click="showDeviceSettings = true">
               <Icon name="settings" />
               Settings
             </button>
@@ -110,7 +110,7 @@ This component provides comprehensive mobile offline management including:
           <div v-if="storageUsage.needs_cleanup" class="storage-warning">
             <Icon name="alert-triangle" />
             <span>Storage nearly full. Consider cleaning up old content.</span>
-            <button @click="showCleanupModal = true" class="cleanup-btn">Cleanup</button>
+            <button class="cleanup-btn" @click="showCleanupModal = true">Cleanup</button>
           </div>
         </div>
       </section>
@@ -161,12 +161,12 @@ This component provides comprehensive mobile offline management including:
           <div class="action-group">
             <input 
               v-model="searchQuery" 
-              @input="filterOfflineTracks"
-              type="text" 
+              type="text"
               placeholder="Search offline tracks..." 
-              class="search-input"
+              class="search-input" 
+              @input="filterOfflineTracks"
             />
-            <select v-model="sortBy" @change="sortOfflineTracks" class="sort-select">
+            <select v-model="sortBy" class="sort-select" @change="sortOfflineTracks">
               <option value="title">Sort by Title</option>
               <option value="artist">Sort by Artist</option>
               <option value="date_added">Sort by Date Added</option>
@@ -174,15 +174,15 @@ This component provides comprehensive mobile offline management including:
             </select>
           </div>
           <div class="action-group">
-            <button @click="showAddTracksModal = true" class="add-tracks-btn">
+            <button class="add-tracks-btn" @click="showAddTracksModal = true">
               <Icon name="plus" />
               Add Tracks
             </button>
-            <button @click="showSyncPlaylistModal = true" class="sync-playlist-btn">
+            <button class="sync-playlist-btn" @click="showSyncPlaylistModal = true">
               <Icon name="list" />
               Sync Playlist
             </button>
-            <button v-if="selectedTracks.length > 0" @click="removeSelectedTracks" class="remove-btn">
+            <button v-if="selectedTracks.length > 0" class="remove-btn" @click="removeSelectedTracks">
               <Icon name="trash-2" />
               Remove Selected ({{ selectedTracks.length }})
             </button>
@@ -222,10 +222,10 @@ This component provides comprehensive mobile offline management including:
               </div>
             </div>
             <div class="track-actions">
-              <button @click.stop="playTrack(track)" class="play-btn">
+              <button class="play-btn" @click.stop="playTrack(track)">
                 <Icon name="play" />
               </button>
-              <button @click.stop="removeTrack(track.track_id)" class="remove-track-btn">
+              <button class="remove-track-btn" @click.stop="removeTrack(track.track_id)">
                 <Icon name="x" />
               </button>
             </div>
@@ -237,7 +237,7 @@ This component provides comprehensive mobile offline management including:
           <Icon name="music" class="empty-icon" />
           <h3>No Offline Tracks</h3>
           <p>Add tracks to your offline library to enjoy music without internet connection</p>
-          <button @click="showAddTracksModal = true" class="add-tracks-primary-btn">
+          <button class="add-tracks-primary-btn" @click="showAddTracksModal = true">
             <Icon name="plus" />
             Add First Track
           </button>
@@ -250,12 +250,12 @@ This component provides comprehensive mobile offline management including:
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>Register Mobile Device</h3>
-          <button @click="showAddDeviceModal = false" class="close-btn">
+          <button class="close-btn" @click="showAddDeviceModal = false">
             <Icon name="x" />
           </button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="registerDevice" class="device-form">
+          <form class="device-form" @submit.prevent="registerDevice">
             <div class="form-group">
               <label>Device Name</label>
               <input v-model="newDevice.name" type="text" required class="form-input" />
@@ -288,15 +288,15 @@ This component provides comprehensive mobile offline management including:
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" v-model="newDevice.auto_sync_enabled" />
+                <input v-model="newDevice.auto_sync_enabled" type="checkbox" />
                 Enable automatic sync
               </label>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button @click="showAddDeviceModal = false" class="cancel-btn">Cancel</button>
-          <button @click="registerDevice" :disabled="registeringDevice" class="primary-btn">
+          <button class="cancel-btn" @click="showAddDeviceModal = false">Cancel</button>
+          <button :disabled="registeringDevice" class="primary-btn" @click="registerDevice">
             {{ registeringDevice ? 'Registering...' : 'Register Device' }}
           </button>
         </div>
@@ -308,7 +308,7 @@ This component provides comprehensive mobile offline management including:
       <div class="modal-content large" @click.stop>
         <div class="modal-header">
           <h3>Add Tracks to Offline Library</h3>
-          <button @click="showAddTracksModal = false" class="close-btn">
+          <button class="close-btn" @click="showAddTracksModal = false">
             <Icon name="x" />
           </button>
         </div>
@@ -329,8 +329,8 @@ This component provides comprehensive mobile offline management including:
               <div class="selection-header">
                 <h4>Select Tracks</h4>
                 <div class="selection-actions">
-                  <button @click="selectAllTracks" class="select-all-btn">Select All</button>
-                  <button @click="clearTrackSelection" class="clear-btn">Clear Selection</button>
+                  <button class="select-all-btn" @click="selectAllTracks">Select All</button>
+                  <button class="clear-btn" @click="clearTrackSelection">Clear Selection</button>
                 </div>
               </div>
               
@@ -343,8 +343,8 @@ This component provides comprehensive mobile offline management including:
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showAddTracksModal = false" class="cancel-btn">Cancel</button>
-          <button @click="addSelectedTracks" :disabled="selectedLibraryTracks.length === 0" class="primary-btn">
+          <button class="cancel-btn" @click="showAddTracksModal = false">Cancel</button>
+          <button :disabled="selectedLibraryTracks.length === 0" class="primary-btn" @click="addSelectedTracks">
             Add {{ selectedLibraryTracks.length }} Tracks
           </button>
         </div>
@@ -356,7 +356,7 @@ This component provides comprehensive mobile offline management including:
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>Device Settings</h3>
-          <button @click="showDeviceSettings = false" class="close-btn">
+          <button class="close-btn" @click="showDeviceSettings = false">
             <Icon name="x" />
           </button>
         </div>
@@ -377,27 +377,27 @@ This component provides comprehensive mobile offline management including:
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" v-model="deviceSettings.auto_sync_enabled" />
+                <input v-model="deviceSettings.auto_sync_enabled" type="checkbox" />
                 Enable automatic sync
               </label>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" v-model="deviceSettings.wifi_only" />
+                <input v-model="deviceSettings.wifi_only" type="checkbox" />
                 Sync over WiFi only
               </label>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" v-model="deviceSettings.auto_cleanup" />
+                <input v-model="deviceSettings.auto_cleanup" type="checkbox" />
                 Automatic cleanup when storage is full
               </label>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showDeviceSettings = false" class="cancel-btn">Cancel</button>
-          <button @click="updateDeviceSettings" :disabled="updatingSettings" class="primary-btn">
+          <button class="cancel-btn" @click="showDeviceSettings = false">Cancel</button>
+          <button :disabled="updatingSettings" class="primary-btn" @click="updateDeviceSettings">
             {{ updatingSettings ? 'Updating...' : 'Update Settings' }}
           </button>
         </div>
@@ -409,7 +409,7 @@ This component provides comprehensive mobile offline management including:
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>Cleanup Storage</h3>
-          <button @click="showCleanupModal = false" class="close-btn">
+          <button class="close-btn" @click="showCleanupModal = false">
             <Icon name="x" />
           </button>
         </div>
@@ -426,21 +426,21 @@ This component provides comprehensive mobile offline management including:
             <div class="cleanup-strategies">
               <h4>Cleanup Strategy</h4>
               <label class="strategy-option">
-                <input type="radio" v-model="cleanupStrategy" value="least_played" />
+                <input v-model="cleanupStrategy" type="radio" value="least_played" />
                 <div class="strategy-details">
                   <strong>Least Played</strong>
                   <p>Remove tracks with lowest play count</p>
                 </div>
               </label>
               <label class="strategy-option">
-                <input type="radio" v-model="cleanupStrategy" value="oldest" />
+                <input v-model="cleanupStrategy" type="radio" value="oldest" />
                 <div class="strategy-details">
                   <strong>Oldest First</strong>
                   <p>Remove tracks added longest ago</p>
                 </div>
               </label>
               <label class="strategy-option">
-                <input type="radio" v-model="cleanupStrategy" value="all" />
+                <input v-model="cleanupStrategy" type="radio" value="all" />
                 <div class="strategy-details">
                   <strong>Clear All</strong>
                   <p>Remove all offline tracks</p>
@@ -460,8 +460,8 @@ This component provides comprehensive mobile offline management including:
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showCleanupModal = false" class="cancel-btn">Cancel</button>
-          <button @click="performCleanup" :disabled="cleaningUp" class="danger-btn">
+          <button class="cancel-btn" @click="showCleanupModal = false">Cancel</button>
+          <button :disabled="cleaningUp" class="danger-btn" @click="performCleanup">
             {{ cleaningUp ? 'Cleaning...' : 'Cleanup Storage' }}
           </button>
         </div>

@@ -4,15 +4,15 @@ import axios from 'axios'
 
 export const useAdvancedUXStore = defineStore('advancedUX', () => {
   // State
-  const suggestions = ref([])
-  const recommendations = ref([])
-  const contextualSuggestions = ref([])
-  const downloadSuggestions = ref([])
-  const filters = ref([])
-  const trendingContent = ref([])
-  const userProfile = ref(null)
+  const suggestions = ref<unknown[]>([])
+  const recommendations = ref<unknown[]>([])
+  const contextualSuggestions = ref<unknown[]>([])
+  const downloadSuggestions = ref<unknown[]>([])
+  const filters = ref<unknown[]>([])
+  const trendingContent = ref<unknown[]>([])
+  const userProfile = ref<Record<string, unknown> | null>(null)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
   // Getters
   const hasSuggestions = computed(() => suggestions.value.length > 0)
@@ -21,7 +21,7 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
   const isLoading = computed(() => loading.value)
 
   // Actions
-  const getSearchSuggestions = async (query, context = 'general', limit = 10) => {
+  const getSearchSuggestions = async (query: string, context: string = 'general', limit: number = 10) => {
     loading.value = true
     error.value = null
     
@@ -31,8 +31,8 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       })
       suggestions.value = response.data.suggestions
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get search suggestions'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get search suggestions'
       throw err
     } finally {
       loading.value = false
@@ -49,15 +49,15 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       })
       recommendations.value = response.data.recommendations
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get discovery recommendations'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get discovery recommendations'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const getContextualSuggestions = async (trackId, contextType = 'similar') => {
+  const getContextualSuggestions = async (trackId: string, contextType: string = 'similar') => {
     loading.value = true
     error.value = null
     
@@ -67,8 +67,8 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       })
       contextualSuggestions.value = response.data.suggestions
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get contextual suggestions'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get contextual suggestions'
       throw err
     } finally {
       loading.value = false
@@ -85,8 +85,8 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       })
       downloadSuggestions.value = response.data.suggestions
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get download suggestions'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get download suggestions'
       throw err
     } finally {
       loading.value = false
@@ -101,15 +101,15 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       const response = await axios.get('/api/ux/search/filters')
       filters.value = response.data.filters
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get search filters'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get search filters'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const trackUserBehavior = async (type, data) => {
+  const trackUserBehavior = async (type: string, data: Record<string, unknown>) => {
     try {
       const response = await axios.post('/api/ux/behavior/track', {
         type,
@@ -130,8 +130,8 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       const response = await axios.get('/api/ux/behavior/profile')
       userProfile.value = response.data.profile
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get user behavior profile'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get user behavior profile'
       throw err
     } finally {
       loading.value = false
@@ -148,23 +148,23 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       })
       trendingContent.value = response.data.trending
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get trending content'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get trending content'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const advancedSearch = async (searchData) => {
+  const advancedSearch = async (searchData: Record<string, unknown>) => {
     loading.value = true
     error.value = null
     
     try {
       const response = await axios.post('/api/ux/search/advanced', searchData)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to perform advanced search'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to perform advanced search'
       throw err
     } finally {
       loading.value = false
@@ -180,8 +180,8 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
         params: { type, limit }
       })
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get quick suggestions'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get quick suggestions'
       throw err
     } finally {
       loading.value = false
@@ -195,15 +195,15 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
     try {
       const response = await axios.get('/api/ux/personalization/preferences')
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get personalization preferences'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get personalization preferences'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const updatePersonalizationPreferences = async (preferences) => {
+  const updatePersonalizationPreferences = async (preferences: Record<string, unknown>) => {
     loading.value = true
     error.value = null
     
@@ -212,12 +212,12 @@ export const useAdvancedUXStore = defineStore('advancedUX', () => {
       
       // Update user profile if available
       if (userProfile.value) {
-        userProfile.value = { ...userProfile.value, ...preferences }
+        userProfile.value = { ...userProfile.value, ...preferences } as Record<string, unknown>
       }
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to update personalization preferences'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update personalization preferences'
       throw err
     } finally {
       loading.value = false

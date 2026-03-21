@@ -2,7 +2,7 @@
     <div v-if="album_disc.is_album_disc_number" class="album_disc_header no-select">
         <div class="disc_number">
             Disc {{ album_disc.album_page_disc_number }}
-            <span @click="$emit('playDisc', album_disc.album_page_disc_number || 0)" class="play">
+            <span class="play" @click="$emit('playDisc', album_disc.album_page_disc_number || 0)">
                 <PlaySvg /> Play Disc {{ album_disc.album_page_disc_number }}</span
             >
         </div>

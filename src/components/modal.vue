@@ -6,14 +6,10 @@
             v-motion-slide-top
             class="m-content rounded"
             :class="{
-                settings: modal.component == modal.options.settings,
                 authlogin: modal.component == modal.options.login,
-            }"
-            :style="{
-                maxWidth: modal.component == modal.options.setRootDirs ? '56rem' : '30rem',
+                'wide-modal': modal.component == modal.options.setRootDirs,
             }"
         >
-            <!-- TODO: MOVE MAX WIDTH TO CLASS -->
             <div class="heading">{{ modal.title }}</div>
             <AuthLogin v-if="modal.component == modal.options.login" />
             <NewPlaylist
@@ -24,9 +20,9 @@
             />
             <CrudPage
                 v-if="modal.component == modal.options.page"
+                v-bind="modal.props"
                 @hideModal="hideModal"
                 @setTitle="setTitle"
-                v-bind="modal.props"
             />
             <UpdatePlaylist
                 v-if="modal.component == modal.options.updatePlaylist"
@@ -43,7 +39,6 @@
             </div>
             <SetRootDirs v-if="modal.component == modal.options.setRootDirs" @hideModal="hideModal" />
             <RootDirsPrompt v-if="modal.component == modal.options.rootDirsPrompt" @hideModal="hideModal" />
-            <Settings @set-title="setTitle" v-if="modal.component == modal.options.settings" />
         </div>
     </div>
 </template>
@@ -59,7 +54,6 @@ import CrudPage from './modals/CrudPage.vue'
 import NewPlaylist from './modals/NewPlaylist.vue'
 import RootDirsPrompt from './modals/RootDirsPrompt.vue'
 import SetRootDirs from './modals/SetRootDirs.vue'
-import Settings from './modals/Settings.vue'
 import UpdatePlaylist from './modals/updatePlaylist.vue'
 
 const modal = useModalStore()
@@ -130,15 +124,12 @@ function deletePlaylist() {
         }
     }
 
-    .m-content.settings {
-        max-width: 50rem !important;
-        padding: 0;
-        overflow: hidden;
-        // min-height: 39rem;
-    }
-
     .m-content.authlogin {
         padding: 0;
+    }
+
+    .m-content.wide-modal {
+        max-width: 56rem;
     }
 }
 </style>

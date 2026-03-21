@@ -8,22 +8,22 @@
           <input 
             ref="searchInput"
             v-model="searchQuery" 
+            placeholder="Search tracks, artists, albums, playlists..."
+            class="search-input"
             @input="handleSearchInput"
             @keydown.enter="performSearch"
             @keydown.down="navigateSuggestions('down')"
             @keydown.up="navigateSuggestions('up')"
             @keydown.escape="clearSuggestions"
-            placeholder="Search tracks, artists, albums, playlists..."
-            class="search-input"
           />
-          <div v-if="searchQuery" @click="clearSearch" class="clear-button">
+          <div v-if="searchQuery" class="clear-button" @click="clearSearch">
             <X />
           </div>
         </div>
         
         <!-- Search Type Selector -->
         <div class="search-type-selector">
-          <select v-model="searchType" @change="performSearch" class="search-type">
+          <select v-model="searchType" class="search-type" @change="performSearch">
             <option value="all">All</option>
             <option value="tracks">Tracks</option>
             <option value="albums">Albums</option>
@@ -54,8 +54,8 @@
           <div class="suggestion-type">{{ suggestion.type }}</div>
           <button 
             v-if="!isLocalContent(suggestion)"
-            @click.stop="downloadItem(suggestion)"
             class="download-button"
+            @click.stop="downloadItem(suggestion)"
           >
             <Download />
           </button>
@@ -67,16 +67,16 @@
     <div class="search-options">
       <label class="checkbox-label">
         <input 
-          type="checkbox" 
           v-model="includeLocal" 
+          type="checkbox" 
           @change="performSearch"
         />
         Include Local Library
       </label>
       <label class="checkbox-label">
         <input 
-          type="checkbox" 
           v-model="includeGlobal" 
+          type="checkbox" 
           @change="performSearch"
         />
         Include Global Catalog
@@ -433,21 +433,23 @@ export default {
     
     const performLocalSearch = async () => {
       try {
-        const response = await fetch('/api/search', {
+        const response = await fetch('/api/search/combined', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             query: searchQuery.value,
-            type: searchType.value
+            include_local: true,
+            include_global: false,
+            type: searchType.value,
           })
         })
         
         if (!response.ok) throw new Error('Local search failed')
         
         const data = await response.json()
-        return { source: 'local', data }
+        return { source: 'local', data: data.local || {} }
       } catch (error) {
         console.error('Local search error:', error)
         return { source: 'local', data: {} }
@@ -583,25 +585,43 @@ export default {
     
     const viewAlbum = (album) => {
       if (isLocalContent(album)) {
-        router.push(`/album/${album.id}`)
+        router.push({
+          name: 'AlbumView',
+          params: { albumhash: album.id }
+        })
       } else {
-        router.push(`/global/album/${album.spotify_id}`)
+        router.push({
+          name: 'global-album',
+          params: { id: album.spotify_id }
+        })
       }
     }
     
     const viewArtist = (artist) => {
       if (isLocalContent(artist)) {
-        router.push(`/artist/${artist.id}`)
+        router.push({
+          name: 'ArtistView',
+          params: { hash: artist.id }
+        })
       } else {
-        router.push(`/global/artist/${artist.spotify_id}`)
+        router.push({
+          name: 'global-artist',
+          params: { id: artist.spotify_id }
+        })
       }
     }
     
     const viewPlaylist = (playlist) => {
       if (isLocalContent(playlist)) {
-        router.push(`/playlist/${playlist.id}`)
+        router.push({
+          name: 'PlaylistView',
+          params: { pid: playlist.id }
+        })
       } else {
-        showToast('Global playlist viewing not yet available', 'info')
+        router.push({
+          name: 'global-playlist',
+          params: { id: playlist.spotify_id }
+        })
       }
     }
     

@@ -11,8 +11,8 @@
     >
         <MixImage :mix="mix" :on_header="on_header" />
         <div class="info">
-            <div class="mix rhelp" v-if="mix.time || mix.help_text">
-                <span class="help" v-if="mix.help_text">{{ mix.extra.type }} {{ mix.help_text }} </span>
+            <div v-if="mix.time || mix.help_text" class="mix rhelp">
+                <span v-if="mix.help_text" class="help">{{ mix.extra.type }} {{ mix.help_text }} </span>
                 <span class="time"> {{ mix.time }} </span>
             </div>
             <div class="description ellip2">

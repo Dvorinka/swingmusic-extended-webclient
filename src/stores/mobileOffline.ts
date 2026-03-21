@@ -4,18 +4,18 @@ import axios from 'axios'
 
 export const useMobileOfflineStore = defineStore('mobileOffline', () => {
   // State
-  const devices = ref([])
-  const currentDevice = ref(null)
-  const offlineLibrary = ref(null)
-  const syncProgress = ref(null)
-  const storageUsage = ref(null)
+  const devices = ref<{ device_id: string; [key: string]: unknown }[]>([])
+  const currentDevice = ref<{ device_id: string; [key: string]: unknown } | null>(null)
+  const offlineLibrary = ref<{ tracks?: unknown[]; storage_usage?: { usage_percentage: number } } | null>(null)
+  const syncProgress = ref<{ downloading_items: number } | null>(null)
+  const storageUsage = ref<{ usage_percentage: number } | null>(null)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
   // Getters
   const hasDevices = computed(() => devices.value.length > 0)
   const currentDeviceId = computed(() => currentDevice.value?.device_id || null)
-  const isSyncing = computed(() => syncProgress.value?.downloading_items > 0)
+  const isSyncing = computed(() => (syncProgress.value?.downloading_items ?? 0) > 0)
   const storagePercentage = computed(() => storageUsage.value?.usage_percentage || 0)
 
   // Actions
@@ -27,15 +27,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       const response = await axios.get('/api/mobile-offline/devices')
       devices.value = response.data.devices
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load devices'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to load devices'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const registerDevice = async (deviceInfo) => {
+  const registerDevice = async (deviceInfo: { device_name?: string; device_type?: string; os_version?: string }) => {
     loading.value = true
     error.value = null
     
@@ -46,15 +46,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       await getUserDevices()
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to register device'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to register device'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const getDeviceInfo = async (deviceId) => {
+  const getDeviceInfo = async (deviceId: string) => {
     loading.value = true
     error.value = null
     
@@ -62,15 +62,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       const response = await axios.get(`/api/mobile-offline/devices/${deviceId}`)
       currentDevice.value = response.data.device
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get device info'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get device info'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const updateDeviceSettings = async (deviceId, settings) => {
+  const updateDeviceSettings = async (deviceId: string, settings: Record<string, unknown>) => {
     loading.value = true
     error.value = null
     
@@ -83,15 +83,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       }
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to update device settings'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update device settings'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const getOfflineLibrary = async (deviceId, options = {}) => {
+  const getOfflineLibrary = async (deviceId: string, options: Record<string, string> = {}) => {
     loading.value = true
     error.value = null
     
@@ -108,20 +108,20 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       storageUsage.value = response.data.offline_library.storage_usage
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get offline library'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get offline library'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const addTracksToOffline = async (deviceId, trackIds, quality = null) => {
+  const addTracksToOffline = async (deviceId: string, trackIds: string[], quality: string | null = null) => {
     loading.value = true
     error.value = null
     
     try {
-      const requestData = { track_ids: trackIds }
+      const requestData: { track_ids: string[]; quality?: string } = { track_ids: trackIds }
       if (quality) {
         requestData.quality = quality
       }
@@ -135,20 +135,20 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       ])
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to add tracks to offline library'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to add tracks to offline library'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const syncPlaylistOffline = async (deviceId, playlistId, quality = null) => {
+  const syncPlaylistOffline = async (deviceId: string, playlistId: string, quality: string | null = null) => {
     loading.value = true
     error.value = null
     
     try {
-      const requestData = {}
+      const requestData: { quality?: string } = {}
       if (quality) {
         requestData.quality = quality
       }
@@ -162,15 +162,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       ])
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to sync playlist offline'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to sync playlist offline'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const removeTracksFromOffline = async (deviceId, trackIds) => {
+  const removeTracksFromOffline = async (deviceId: string, trackIds: string[]) => {
     loading.value = true
     error.value = null
     
@@ -183,15 +183,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       await getOfflineLibrary(deviceId)
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to remove tracks from offline library'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to remove tracks from offline library'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const getSyncProgress = async (deviceId) => {
+  const getSyncProgress = async (deviceId: string) => {
     loading.value = true
     error.value = null
     
@@ -199,15 +199,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       const response = await axios.get(`/api/mobile-offline/devices/${deviceId}/sync-progress`)
       syncProgress.value = response.data.sync_progress
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get sync progress'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get sync progress'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const forceSyncNow = async (deviceId) => {
+  const forceSyncNow = async (deviceId: string) => {
     loading.value = true
     error.value = null
     
@@ -223,15 +223,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       startProgressPolling(deviceId)
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to force sync'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to force sync'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const getStorageInfo = async (deviceId) => {
+  const getStorageInfo = async (deviceId: string) => {
     loading.value = true
     error.value = null
     
@@ -239,15 +239,15 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       const response = await axios.get(`/api/mobile-offline/devices/${deviceId}/storage-info`)
       storageUsage.value = response.data.storage_info
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get storage info'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get storage info'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const cleanupStorage = async (deviceId, cleanupOptions) => {
+  const cleanupStorage = async (deviceId: string, cleanupOptions: Record<string, unknown>) => {
     loading.value = true
     error.value = null
     
@@ -261,8 +261,8 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
       ])
       
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to cleanup storage'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to cleanup storage'
       throw err
     } finally {
       loading.value = false
@@ -276,8 +276,8 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
     try {
       const response = await axios.get('/api/mobile-offline/quality-presets')
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to get quality presets'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to get quality presets'
       throw err
     } finally {
       loading.value = false
@@ -285,9 +285,9 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
   }
 
   // Progress polling
-  let progressPollingInterval = null
+  let progressPollingInterval: ReturnType<typeof setInterval> | null = null
 
-  const startProgressPolling = (deviceId) => {
+  const startProgressPolling = (deviceId: string) => {
     // Clear any existing polling
     stopProgressPolling()
     
@@ -320,7 +320,7 @@ export const useMobileOfflineStore = defineStore('mobileOffline', () => {
   }
 
   // Utility methods
-  const setCurrentDevice = (device) => {
+  const setCurrentDevice = (device: { device_id: string; [key: string]: unknown } | null) => {
     currentDevice.value = device
   }
 

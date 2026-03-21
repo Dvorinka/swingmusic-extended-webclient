@@ -32,8 +32,8 @@ defineEmits<{
 
 <style lang="scss">
 #right-tabs {
-    display: grid;
-    position: absolute; // TODO: Find a way to fix scrollability without using position absolute.
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 
     height: 100%;

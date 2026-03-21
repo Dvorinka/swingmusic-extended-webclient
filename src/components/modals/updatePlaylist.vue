@@ -20,14 +20,21 @@
         <label for="image">Image</label>
         <input
             id="update-pl-image-upload"
-            ref="dropZoneRef"
+            ref="fileInputRef"
             type="file"
             accept="image/*"
             name="image"
             style="display: none"
             @change="handleUpload"
         />
-        <div id="upload" class="boxed rounded-sm">
+        <div 
+            id="upload" 
+            class="boxed rounded-sm"
+            :class="{ 'drag-over': isDragOver }"
+            @dragover.prevent="handleDragOver"
+            @dragleave.prevent="handleDragLeave"
+            @drop.prevent="handleDrop"
+        >
             <div class="clickable" tabindex="0" @click="selectFiles" @keydown.space.enter.stop="selectFiles">
                 <ImageIcon />
                 Click to {{ playlist.has_image ? 'update' : 'upload' }} cover image
@@ -86,6 +93,8 @@ const { info: playlist } = storeToRefs(pStore)
 
 const pname = ref(playlist.value.name)
 const image: Ref<any> = ref(null)
+const isDragOver = ref(false)
+const fileInputRef = ref<HTMLInputElement>()
 
 onMounted(() => {
     ;(document.getElementById('modal-playlist-name-input') as HTMLElement).focus()
@@ -127,6 +136,24 @@ function handleFile(file: File) {
     image.value = file
 }
 
+// Drag and drop handlers
+function handleDragOver(e: DragEvent) {
+    isDragOver.value = true
+}
+
+function handleDragLeave(e: DragEvent) {
+    isDragOver.value = false
+}
+
+function handleDrop(e: DragEvent) {
+    isDragOver.value = false
+    
+    const files = e.dataTransfer?.files
+    if (files && files.length > 0) {
+        handleFile(files[0])
+    }
+}
+
 let clicked = ref(false)
 
 function update_playlist(e: Event) {
@@ -154,8 +181,6 @@ function update_playlist(e: Event) {
         })
     }
 }
-
-// Future TODO: Implement drag and drop for images here
 </script>
 
 <style lang="scss">
@@ -194,6 +219,11 @@ function update_playlist(e: Event) {
         gap: $small;
         border: none;
         margin: $small 0 1rem 0;
+
+        &.drag-over {
+            background-color: $gray4;
+            border: dashed 2px $highlight-blue;
+        }
 
         svg {
             height: 2rem;

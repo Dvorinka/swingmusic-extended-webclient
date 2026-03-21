@@ -4,7 +4,8 @@
  * @returns A javascript object representing the value stored in local storage
  */
 export function readLocalStorage(key: string) {
-  return JSON.parse(localStorage.getItem(key));
+  const item = localStorage.getItem(key)
+  return item ? JSON.parse(item) : null
 }
 
 /**

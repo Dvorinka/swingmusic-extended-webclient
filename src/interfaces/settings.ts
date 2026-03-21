@@ -1,4 +1,5 @@
 import { SettingType } from "@/settings/enums";
+import { Component } from "vue";
 
 export interface SettingOption {
   title: string;
@@ -8,16 +9,17 @@ export interface SettingOption {
 export interface Setting {
   title?: string;
   desc?: string;
-  type: SettingType;
+  type: SettingType | "custom";
   options?: SettingOption[];
   inactive?: () => boolean;
-  action: (arg0?: any) => any;
-  state: (() => any) | null;
+  action?: (arg0?: any) => any;
+  state?: (() => any) | null;
   button_text?: () => string;
   defaultAction?: () => void;
   show_if?: () => boolean;
   experimental?: boolean;
   new?: boolean;
+  component?: Component;
 }
 
 export interface SettingGroup {

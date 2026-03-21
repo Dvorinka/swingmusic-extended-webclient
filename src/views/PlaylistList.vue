@@ -59,8 +59,6 @@ const query = debouncedRef(input, 300)
 const description = `You can create a playlist by right clicking on a track and selecting the
         "Add to Playlist" option`
 
-// TODO: When you add a song to playlist when you are in this page, increase the count on the card.
-
 const pinnedPlaylists = computed(() => {
     return pStore.playlists.filter(p => p.pinned)
 })

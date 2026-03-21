@@ -1,10 +1,10 @@
 <template>
     <NoItems
+        v-if="showNoItemsComponent"
         :title="`No ${page} results`"
         :description="desc"
         :icon="SearchSvg"
         :flag="!items.length"
-        v-if="showNoItemsComponent"
     />
     <div class="v-scroll-page" style="height: 100%">
         <DynamicScroller style="height: 100%" class="scroller" :min-item-size="64" :items="scrollerItems">

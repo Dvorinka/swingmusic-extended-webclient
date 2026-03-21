@@ -1,6 +1,6 @@
 <template>
-    <Profile :adding_user="true" v-if="showAddUser" @user-added="userAdded" />
-    <div class="accountsettings" v-else>
+    <Profile v-if="showAddUser" :adding_user="true" @user-added="userAdded" />
+    <div v-else class="accountsettings">
         <div class="asettings">
             <ToggleSetting
                 v-for="s in account_settings"
@@ -11,6 +11,23 @@
                 @click="s.action"
             />
         </div>
+        <div class="storagesettings rounded">
+            <div class="h2">My Storage Roots</div>
+            <p class="subtext">
+                Downloads and imports for your account will use these folders first.
+            </p>
+            <textarea
+                v-model="storageRootsInput"
+                class="rootdirs"
+                rows="3"
+                placeholder="One path per line"
+            />
+            <div class="storage-actions">
+                <button class="save" :disabled="savingRoots" @click="saveStorageRoots">
+                    {{ savingRoots ? 'Saving...' : 'Save Storage Roots' }}
+                </button>
+            </div>
+        </div>
         <div class="ahead">
             <div class="h2">All users</div>
             <button class="adduser" @click="showAddUser = true">
@@ -20,10 +37,10 @@
         </div>
         <TransitionGroup name="list">
             <div
-                class="usercard rounded"
-                v-auto-animate
                 v-for="(user, index) in users"
                 :key="user.id"
+                v-auto-animate
+                class="usercard rounded"
                 :class="{
                     selected: user.id === selectedUser,
                     secondchild: index == 1,
@@ -36,16 +53,16 @@
                             {{ user.firstname || user.username }}
                         </div>
                         <div class="roles">
-                            <span class="role" v-for="role in user.roles">{{ role }}</span>
+                            <span v-for="role in user.roles" :key="`${user.id}-${role}`" class="role">{{ role }}</span>
                         </div>
                     </div>
                     <DeleteSvg
-                        class="delete"
                         v-if="auth.user.username !== user.username"
+                        class="delete"
                         @click.stop="() => deleteUser(user)"
                     />
                 </div>
-                <div class="usettins" v-if="user.id === selectedUser">
+                <div v-if="user.id === selectedUser" class="usettins">
                     <ToggleSetting
                         v-for="setting in usettings"
                         :key="setting.title"
@@ -68,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+import axios from 'axios'
 import { User } from '@/interfaces'
 import { getAllUsers } from '@/requests/auth'
 import { updateConfig } from '@/requests/settings'
@@ -89,6 +107,8 @@ const toast = useToast()
 const selectedUser = ref(0)
 const users = ref(<User[]>[])
 const showAddUser = ref(false)
+const storageRootsInput = ref('')
+const savingRoots = ref(false)
 
 const settingsMap = {
     enableGuest: ref(false),
@@ -200,6 +220,51 @@ function selectUser(id: number) {
     selectedUser.value = id
 }
 
+function parseStorageRoots(input: string) {
+    return input
+        .split(/\n|,/g)
+        .map(item => item.trim())
+        .filter(Boolean)
+}
+
+async function loadStorageRoots() {
+    try {
+        const { data } = await axios.get('/api/downloads/storage/roots')
+        const roots = data?.owned_roots || data?.effective_roots || []
+        storageRootsInput.value = roots.join('\n')
+    } catch {
+        storageRootsInput.value = ''
+    }
+}
+
+async function saveStorageRoots() {
+    if (savingRoots.value) {
+        return
+    }
+
+    savingRoots.value = true
+    try {
+        const rootDirs = parseStorageRoots(storageRootsInput.value)
+        const { data } = await axios.post('/api/downloads/storage/roots', {
+            root_dirs: rootDirs,
+        })
+
+        if (!data?.success) {
+            toast.showError(data?.error || 'Failed to save storage roots')
+            return
+        }
+
+        const savedRoots = data?.owned_roots || data?.effective_roots || []
+        storageRootsInput.value = savedRoots.join('\n')
+        toast.show('Storage roots updated')
+    } catch (error: any) {
+        const message = error?.response?.data?.error || 'Failed to save storage roots'
+        toast.showError(message)
+    } finally {
+        savingRoots.value = false
+    }
+}
+
 onMounted(async () => {
     const res = await getAllUsers(false)
 
@@ -221,6 +286,8 @@ onMounted(async () => {
             }
         }
     }
+
+    await loadStorageRoots()
 })
 </script>
 
@@ -261,6 +328,48 @@ onMounted(async () => {
         margin: 0 0 1rem 0;
         padding-bottom: 1rem;
         border-bottom: solid 1px $gray5;
+    }
+
+    .storagesettings {
+        border: solid 1px $gray5;
+        padding: 0.9rem;
+        margin-bottom: 1rem;
+
+        .h2 {
+            padding-left: 0;
+            margin-bottom: 0.3rem;
+        }
+
+        .subtext {
+            margin: 0;
+            color: $gray2;
+            font-size: 0.9rem;
+        }
+
+        .rootdirs {
+            margin-top: 0.65rem;
+            width: 100%;
+            min-height: 4.5rem;
+            resize: vertical;
+            border: none;
+            outline: none;
+            background-color: $gray5;
+            color: $white;
+            padding: 0.65rem 0.75rem;
+            font-family: inherit;
+        }
+
+        .storage-actions {
+            margin-top: 0.65rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .save {
+            padding: 0.45rem 0.8rem;
+            border-radius: 0.5rem;
+            background-color: $darkblue;
+        }
     }
 
     .ahead {

@@ -1,6 +1,6 @@
 <template>
   <div class="home-count">
-    <div class="count-item" :title="count.count.toLocaleString()" v-for="count in parseCount()" :key="count.text">
+    <div v-for="count in parseCount()" :key="count.text" class="count-item" :title="count.count.toLocaleString()">
       <div>{{ count.formatted }}</div>
       <div class="text">{{ count.text }}</div>
     </div>

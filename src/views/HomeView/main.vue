@@ -6,6 +6,28 @@
         </GenericHeader>
         <Browse />
 
+        <section v-if="home.recommendedArtists.length" class="recommended-artists">
+            <div class="rec-head">
+                <h2>Recommended Artists</h2>
+                <p>Discover global artists picked for your profile</p>
+            </div>
+            <div class="artist-grid">
+                <RouterLink
+                    v-for="artist in home.recommendedArtists.slice(0, 12)"
+                    :key="artist.spotify_id || artist.name || artist.title"
+                    class="artist-card rounded-sm"
+                    :to="resolveRecommendedArtistRoute(artist)"
+                >
+                    <img
+                        :src="artist.image_url || '/icons/artist-placeholder.svg'"
+                        :alt="artist.title || artist.name || 'Artist'"
+                        @error="onRecommendedImageError"
+                    />
+                    <div class="name">{{ artist.title || artist.name }}</div>
+                </RouterLink>
+            </div>
+        </section>
+
         <PageItem
             v-for="item in home.homepageItems"
             :key="item.path"
@@ -35,6 +57,28 @@ import GenericHeader from '@/components/shared/GenericHeader.vue'
 const home = useHome()
 const auth = useAuth()
 
+function onRecommendedImageError(event: Event) {
+    const target = event.target as HTMLImageElement | null
+    if (target) {
+        target.src = '/icons/artist-placeholder.svg'
+    }
+}
+
+function resolveRecommendedArtistRoute(artist: any) {
+    const target = artist?.navigation?.target
+    if (target?.route && target?.params) {
+        return {
+            name: target.route,
+            params: target.params,
+        }
+    }
+
+    return {
+        name: 'global-artist',
+        params: { id: artist.spotify_id },
+    }
+}
+
 function getGreetings(username: string) {
     username = username ? username : ''
 
@@ -57,6 +101,7 @@ function getGreetings(username: string) {
 onMounted(async () => {
     updatePageTitle('Home')
     await home.fetchAll()
+    await home.fetchHomeRecommendations()
     await nextTick()
     updateCardWidth()
 })
@@ -69,6 +114,60 @@ onMounted(async () => {
 
     .generichead {
         margin-bottom: 0;
+    }
+
+    .recommended-artists {
+        margin: 1.25rem 0;
+        padding: 0 $small;
+
+        .rec-head {
+            margin-bottom: 0.6rem;
+
+            h2 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+            p {
+                margin: 0.2rem 0 0;
+                color: $gray2;
+                font-size: 0.88rem;
+            }
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+            gap: 0.85rem;
+        }
+
+        .artist-card {
+            border: 1px solid $gray5;
+            background: $gray;
+            color: $white;
+            padding: 0.45rem;
+            transition: background-color 0.2s ease-out;
+
+            img {
+                width: 100%;
+                aspect-ratio: 1;
+                object-fit: cover;
+                border-radius: 0.4rem;
+                margin-bottom: 0.45rem;
+            }
+
+            .name {
+                font-size: 0.85rem;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            &:hover {
+                background: $gray5;
+            }
+        }
     }
 }
 </style>

@@ -21,7 +21,7 @@
         <strong>Maximum file size:</strong> {{ uploadConfig.max_file_size_mb }}MB
       </div>
       <div class="info-item">
-        <strong>Upload directory:</strong> {{ uploadConfig.upload_directory }}
+        <strong>Upload directory:</strong> {{ effectiveUploadDirectory }}
       </div>
     </div>
 
@@ -38,8 +38,8 @@
         type="file"
         multiple
         accept="audio/*"
-        @change="handleFileSelect"
         style="display: none"
+        @change="handleFileSelect"
       />
       
       <!-- Drop Zone Content -->
@@ -115,10 +115,10 @@
       
       <!-- Actions -->
       <div class="result-actions">
-        <button @click="clearResults" class="btn-secondary">
+        <button class="btn-secondary" @click="clearResults">
           Clear Results
         </button>
-        <button @click="triggerLibraryRescan" class="btn-primary">
+        <button class="btn-primary" @click="triggerLibraryRescan">
           <RefreshCw class="btn-icon" />
           Rescan Library
         </button>
@@ -159,6 +159,13 @@ import {
 } from 'lucide-vue-next'
 import axios from 'axios'
 
+const props = defineProps({
+  targetDir: {
+    type: String,
+    default: ''
+  }
+})
+
 // Reactive state
 const isDragOver = ref(false)
 const isUploading = ref(false)
@@ -195,6 +202,10 @@ const formattedSupportedFormats = computed(() => {
   return allFormats.length > 8 
     ? `${allFormats.slice(0, 8).join(', ').toUpperCase()}...`
     : allFormats.join(', ').toUpperCase()
+})
+
+const effectiveUploadDirectory = computed(() => {
+  return props.targetDir || uploadConfig.upload_directory
 })
 
 // Methods
@@ -257,12 +268,16 @@ const uploadFiles = async (files) => {
   files.forEach(file => {
     formData.append('files', file)
   })
+
+  if (props.targetDir) {
+    formData.append('target_dir', props.targetDir)
+  }
   
   try {
     uploadStatus.value = 'Uploading files...'
     uploadProgress.value = 25
     
-    const response = await axios.post('/api/upload/batch', formData, {
+    const response = await axios.post('/upload/batch', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
@@ -334,7 +349,7 @@ const clearResults = () => {
 
 const triggerLibraryRescan = async () => {
   try {
-    await axios.post('/api/upload/rescan')
+    await axios.post('/upload/rescan')
     showNotification('Library rescan triggered successfully', 'success')
   } catch (error) {
     showNotification('Failed to trigger library rescan', 'error')
@@ -369,7 +384,7 @@ const showNotification = (message, type = 'info') => {
 // Lifecycle
 onMounted(async () => {
   try {
-    const response = await axios.get('/api/upload/config')
+    const response = await axios.get('/upload/config')
     Object.assign(uploadConfig, response.data)
   } catch (error) {
     console.error('Failed to load upload config:', error)

@@ -46,12 +46,15 @@ export default defineStore('settings', {
         nowPlayingTrackOnTabTitle: true,
         streaming_quality: 'original',
         streaming_container: 'mp3',
+        adaptive_streaming: false,
+        normalize_volume: false,
+        autoplay: true,
 
         // plugins
-        use_lyrics_plugin: <boolean | undefined>false,
+        use_lyrics_plugin: <boolean | undefined>true,
         lyrics_plugin_settings: {
-            auto_download: false,
-            overide_unsynced: false,
+            auto_download: true,
+            overide_unsynced: true,
         },
         lasftfm_token: '',
         lastfm_api_key: '',
@@ -97,11 +100,15 @@ export default defineStore('settings', {
             this.lastfm_api_key = settings.lastfmApiKey
             this.lastfm_api_secret = settings.lastfmApiSecret
             this.lastfm_session_key = settings.lastfmSessionKey
-            this.use_lyrics_plugin = settings.plugins.find(p => p.name === 'lyrics_finder')?.active
-
-            if (this.use_lyrics_plugin) {
-                this.lyrics_plugin_settings = settings.plugins.find(p => p.name === 'lyrics_finder')?.settings
+            const lyricsPlugin = settings.plugins.find(p => p.name === 'lyrics_finder')
+            this.use_lyrics_plugin = true
+            this.lyrics_plugin_settings = {
+                auto_download: true,
+                overide_unsynced: true,
+                ...(lyricsPlugin?.settings || {}),
             }
+            this.lyrics_plugin_settings.auto_download = true
+            this.lyrics_plugin_settings.overide_unsynced = true
         },
         setArtistSeparators(separators: string[]) {
             this.separators = separators
@@ -188,28 +195,24 @@ export default defineStore('settings', {
             this.useCircularArtistImg = !this.useCircularArtistImg
         },
         toggleLyricsPlugin() {
-            pluginSetActive('lyrics_finder', !this.use_lyrics_plugin).then(() => {
-                this.use_lyrics_plugin = !this.use_lyrics_plugin
+            pluginSetActive('lyrics_finder', true).then(() => {
+                this.use_lyrics_plugin = true
             })
         },
         toggleLyricsAutoDownload() {
-            const state = this.lyrics_plugin_settings.auto_download ? false : true
-
             updatePluginSettings('lyrics_finder', {
                 ...this.lyrics_plugin_settings,
-                auto_download: state,
+                auto_download: true,
             }).then(() => {
-                this.lyrics_plugin_settings.auto_download = state
+                this.lyrics_plugin_settings.auto_download = true
             })
         },
         toggleLyricsOverideUnsynced() {
-            const state = this.lyrics_plugin_settings.overide_unsynced ? false : true
-
             updatePluginSettings('lyrics_finder', {
                 ...this.lyrics_plugin_settings,
-                overide_unsynced: state,
+                overide_unsynced: true,
             }).then(() => {
-                this.lyrics_plugin_settings.overide_unsynced = state
+                this.lyrics_plugin_settings.overide_unsynced = true
             })
         },
         // audio 👇
@@ -368,6 +371,16 @@ export default defineStore('settings', {
         setStreamingQuality(quality: string) {
             this.streaming_quality = quality
         },
+        toggleAdaptiveStreaming() {
+            this.adaptive_streaming = !this.adaptive_streaming
+        },
+        toggleNormalizeVolume() {
+            this.normalize_volume = !this.normalize_volume
+            usePlayer().syncAudioProcessing()
+        },
+        toggleAutoplay() {
+            this.autoplay = !this.autoplay
+        },
         setStatsGroup(group: string) {
             this.statsgroup = group
         },
@@ -401,8 +414,11 @@ export default defineStore('settings', {
             store.root_dir_set = false
 
             // reset plugin settings
-            store.use_lyrics_plugin = false
-            store.lyrics_plugin_settings = {}
+            store.use_lyrics_plugin = true
+            store.lyrics_plugin_settings = {
+                auto_download: true,
+                overide_unsynced: true,
+            }
         },
     },
 })

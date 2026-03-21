@@ -17,24 +17,24 @@ This component provides an advanced search interface with:
         <div class="search-input-wrapper">
           <Icon name="search" class="search-icon" />
           <input 
+            ref="searchInput"
             v-model="searchQuery" 
-            @input="handleSearchInput"
+            type="text"
+            placeholder="Search for tracks, artists, albums, or paste URLs..."
+            class="search-input"
+            @input="handleSearchInput" 
             @focus="showSuggestions = true"
             @blur="hideSuggestions"
             @keydown="handleKeyNavigation"
-            type="text" 
-            placeholder="Search for tracks, artists, albums, or paste URLs..."
-            class="search-input"
-            ref="searchInput"
           />
-          <button v-if="searchQuery" @click="clearSearch" class="clear-btn">
+          <button v-if="searchQuery" class="clear-btn" @click="clearSearch">
             <Icon name="x" />
           </button>
         </div>
         
         <!-- Search Context Selector -->
         <div class="context-selector">
-          <select v-model="searchContext" @change="updateSuggestions" class="context-select">
+          <select v-model="searchContext" class="context-select" @change="updateSuggestions">
             <option value="general">General</option>
             <option value="discovery">Discovery</option>
             <option value="download">Downloads</option>
@@ -85,15 +85,15 @@ This component provides an advanced search interface with:
                 <div class="suggestion-actions">
                   <button 
                     v-if="searchContext === 'download' && suggestion.type === 'track'"
-                    @click.stop="downloadTrack(suggestion)"
                     class="download-btn"
+                    @click.stop="downloadTrack(suggestion)"
                   >
                     <Icon name="download" />
                   </button>
                   <button 
                     v-if="suggestion.type === 'track'"
-                    @click.stop="playTrack(suggestion)"
                     class="play-btn"
+                    @click.stop="playTrack(suggestion)"
                   >
                     <Icon name="play" />
                   </button>
@@ -109,7 +109,7 @@ This component provides an advanced search interface with:
     <div v-if="showFilters" class="filters-section">
       <div class="filters-header">
         <h3>Filters</h3>
-        <button @click="toggleFilters" class="toggle-filters-btn">
+        <button class="toggle-filters-btn" @click="toggleFilters">
           <Icon name="chevron-up" />
         </button>
       </div>
@@ -120,8 +120,8 @@ This component provides an advanced search interface with:
             <label class="filter-label">{{ filter.name }}</label>
             <button 
               v-if="filter.is_active" 
-              @click="clearFilter(filter.filter_id)"
               class="clear-filter-btn"
+              @click="clearFilter(filter.filter_id)"
             >
               <Icon name="x" />
             </button>
@@ -136,11 +136,11 @@ This component provides an advanced search interface with:
                 class="filter-option"
               >
                 <input 
-                  type="checkbox" 
+                  v-model="activeFilters[filter.filter_id]" 
+                  type="checkbox"
                   :value="option.value"
-                  v-model="activeFilters[filter.filter_id]"
-                  @change="applyFilters"
                   class="filter-checkbox"
+                  @change="applyFilters"
                 />
                 <span class="option-label">{{ option.label }}</span>
                 <span v-if="option.count" class="option-count">({{ option.count }})</span>
@@ -148,8 +148,8 @@ This component provides an advanced search interface with:
             </div>
             <button 
               v-if="filter.options.length > 5"
-              @click="toggleShowAll(filter.filter_id)"
               class="show-more-btn"
+              @click="toggleShowAll(filter.filter_id)"
             >
               {{ showAllOptions[filter.filter_id] ? 'Show Less' : `Show ${filter.options.length - 5} More` }}
             </button>
@@ -159,8 +159,8 @@ This component provides an advanced search interface with:
           <div v-else class="single-select-filter">
             <select 
               v-model="activeFilters[filter.filter_id]"
-              @change="applyFilters"
               class="filter-select"
+              @change="applyFilters"
             >
               <option value="">All {{ filter.name }}</option>
               <option 
@@ -183,7 +183,7 @@ This component provides an advanced search interface with:
         <h2>Search Results</h2>
         <div class="results-info">
           <span>{{ searchResults.length }} results</span>
-          <select v-model="sortBy" @change="sortResults" class="sort-select">
+          <select v-model="sortBy" class="sort-select" @change="sortResults">
             <option value="relevance">Relevance</option>
             <option value="popularity">Popularity</option>
             <option value="date">Date Added</option>
@@ -221,16 +221,16 @@ This component provides an advanced search interface with:
               </div>
             </div>
             <div class="result-actions">
-              <button @click="playTrack(result)" class="play-btn">
+              <button class="play-btn" @click="playTrack(result)">
                 <Icon name="play" />
               </button>
-              <button @click="addToQueue(result)" class="queue-btn">
+              <button class="queue-btn" @click="addToQueue(result)">
                 <Icon name="plus" />
               </button>
-              <button @click="downloadTrack(result)" class="download-btn">
+              <button class="download-btn" @click="downloadTrack(result)">
                 <Icon name="download" />
               </button>
-              <button @click="addToFavorites(result)" class="favorite-btn">
+              <button class="favorite-btn" @click="addToFavorites(result)">
                 <Icon name="heart" />
               </button>
             </div>
@@ -256,13 +256,13 @@ This component provides an advanced search interface with:
               </div>
             </div>
             <div class="result-actions">
-              <button @click="viewArtist(result)" class="view-btn">
+              <button class="view-btn" @click="viewArtist(result)">
                 <Icon name="eye" />
               </button>
-              <button @click="followArtist(result)" class="follow-btn">
+              <button class="follow-btn" @click="followArtist(result)">
                 <Icon name="user-plus" />
               </button>
-              <button @click="downloadArtist(result)" class="download-btn">
+              <button class="download-btn" @click="downloadArtist(result)">
                 <Icon name="download" />
               </button>
             </div>
@@ -288,13 +288,13 @@ This component provides an advanced search interface with:
               </div>
             </div>
             <div class="result-actions">
-              <button @click="playAlbum(result)" class="play-btn">
+              <button class="play-btn" @click="playAlbum(result)">
                 <Icon name="play" />
               </button>
-              <button @click="addToQueue(result)" class="queue-btn">
+              <button class="queue-btn" @click="addToQueue(result)">
                 <Icon name="plus" />
               </button>
-              <button @click="downloadAlbum(result)" class="download-btn">
+              <button class="download-btn" @click="downloadAlbum(result)">
                 <Icon name="download" />
               </button>
             </div>
@@ -304,7 +304,7 @@ This component provides an advanced search interface with:
       
       <!-- Load More -->
       <div v-if="hasMoreResults" class="load-more">
-        <button @click="loadMoreResults" :disabled="loadingMore" class="load-more-btn">
+        <button :disabled="loadingMore" class="load-more-btn" @click="loadMoreResults">
           <Icon name="loader-2" :class="{ 'animate-spin': loadingMore }" />
           {{ loadingMore ? 'Loading...' : 'Load More' }}
         </button>
@@ -666,10 +666,6 @@ const downloadArtist = (artist) => {
 
 const playAlbum = (album) => {
   console.log('Play album:', album.title)
-}
-
-const downloadAlbum = (album) => {
-  console.log('Download album:', album.title)
 }
 
 const downloadAlbum = (album) => {

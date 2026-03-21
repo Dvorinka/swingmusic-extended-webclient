@@ -24,16 +24,16 @@ This component provides a comprehensive year-in-review experience including:
       <!-- Year Selector -->
       <div class="year-selector">
         <label class="selector-label">Select Year:</label>
-        <select v-model="selectedYear" @change="loadRecap" class="year-select">
+        <select v-model="selectedYear" class="year-select" @change="loadRecap">
           <option v-for="year in availableYears" :key="year" :value="year">
             {{ year }}
           </option>
         </select>
         <button 
           v-if="!hasRecap" 
-          @click="generateRecap" 
-          :disabled="generating"
+          :disabled="generating" 
           class="generate-btn"
+          @click="generateRecap"
         >
           <Icon name="sparkles" />
           Generate Recap
@@ -59,7 +59,7 @@ This component provides a comprehensive year-in-review experience including:
         <Icon name="calendar-x" class="no-recap-icon" />
         <h2>No Recap Available for {{ selectedYear }}</h2>
         <p>Generate your year-in-review to discover your music journey and celebrate your listening habits.</p>
-        <button @click="generateRecap" class="generate-primary-btn">
+        <button class="generate-primary-btn" @click="generateRecap">
           <Icon name="sparkles" />
           Generate {{ selectedYear }} Recap
         </button>
@@ -237,19 +237,19 @@ This component provides a comprehensive year-in-review experience including:
       <!-- Action Buttons -->
       <section class="actions-section">
         <div class="actions-grid">
-          <button @click="generateVideo" :disabled="generatingVideo" class="action-btn primary">
+          <button :disabled="generatingVideo" class="action-btn primary" @click="generateVideo">
             <Icon name="video" />
             {{ generatingVideo ? 'Generating Video...' : 'Generate Recap Video' }}
           </button>
-          <button @click="shareRecap" class="action-btn secondary">
+          <button class="action-btn secondary" @click="shareRecap">
             <Icon name="share-2" />
             Share Recap
           </button>
-          <button @click="compareYears" class="action-btn secondary">
+          <button class="action-btn secondary" @click="compareYears">
             <Icon name="git-compare" />
             Compare Years
           </button>
-          <button @click="downloadRecap" class="action-btn secondary">
+          <button class="action-btn secondary" @click="downloadRecap">
             <Icon name="download" />
             Download Data
           </button>
@@ -262,14 +262,14 @@ This component provides a comprehensive year-in-review experience including:
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>Share Your {{ selectedYear }} Recap</h3>
-          <button @click="showShareModal = false" class="close-btn">
+          <button class="close-btn" @click="showShareModal = false">
             <Icon name="x" />
           </button>
         </div>
         <div class="modal-body">
           <div class="share-options">
             <label class="share-option">
-              <input type="checkbox" v-model="shareSettings.includePersonalData" />
+              <input v-model="shareSettings.includePersonalData" type="checkbox" />
               Include personal data
             </label>
             <div class="share-setting">
@@ -289,13 +289,13 @@ This component provides a comprehensive year-in-review experience including:
               class="share-link-input"
               @click="copyShareLink"
             />
-            <button @click="copyShareLink" class="copy-btn">
+            <button class="copy-btn" @click="copyShareLink">
               <Icon name="copy" />
             </button>
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="createShareLink" :disabled="creatingShareLink" class="primary-btn">
+          <button :disabled="creatingShareLink" class="primary-btn" @click="createShareLink">
             {{ creatingShareLink ? 'Creating...' : 'Create Share Link' }}
           </button>
         </div>
@@ -307,7 +307,7 @@ This component provides a comprehensive year-in-review experience including:
       <div class="modal-content compare-modal" @click.stop>
         <div class="modal-header">
           <h3>Compare Years</h3>
-          <button @click="showCompareModal = false" class="close-btn">
+          <button class="close-btn" @click="showCompareModal = false">
             <Icon name="x" />
           </button>
         </div>
@@ -330,7 +330,7 @@ This component provides a comprehensive year-in-review experience including:
               </select>
             </div>
           </div>
-          <button @click="performComparison" :disabled="comparing" class="compare-btn">
+          <button :disabled="comparing" class="compare-btn" @click="performComparison">
             {{ comparing ? 'Comparing...' : 'Compare Years' }}
           </button>
           

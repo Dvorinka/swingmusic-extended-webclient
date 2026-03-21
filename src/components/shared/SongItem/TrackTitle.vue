@@ -25,7 +25,7 @@
         <span class="title ellip">
           {{ track.title }}
         </span>
-        <ExplicitIcon  class="explicit-icon" v-if="track.explicit" />
+        <ExplicitIcon  v-if="track.explicit" class="explicit-icon" />
         <MasterFlag :bitrate="track.bitrate" />
       </div>
       <div class="isSmallArtists">

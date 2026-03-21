@@ -19,6 +19,11 @@ export default async (album?: Album) => {
         album = albumStore.info
     }
 
+    // Early return if no album is available
+    if (!album) {
+        return []
+    }
+
     const play_next = <Option>{
         label: 'Play next',
         action: async () => {
@@ -53,38 +58,39 @@ export default async (album?: Album) => {
 
     // Action for each playlist option
     const AddToPlaylistAction = (playlist: Playlist) => {
-        addAlbumToPlaylist(playlist, album.albumhash)
+        if (album) addAlbumToPlaylist(playlist, album.albumhash)
     }
 
     const add_to_playlist: Option = {
         label: 'Add to Playlist',
         children: () =>
-            getAddToPlaylistOptions(AddToPlaylistAction, {
+            album ? getAddToPlaylistOptions(AddToPlaylistAction, {
                 albumhash: album.albumhash,
                 playlist_name: album.title,
-            }),
+            }) : Promise.resolve([]),
         icon: PlusIcon,
     }
 
     const addToPageAction = (page: Collection) => {
-        addOrRemoveItemFromCollection(page.id, album, 'album', 'add')
+        if (album) addOrRemoveItemFromCollection(page.id, album, 'album', 'add')
     }
 
     const add_to_page: Option = {
         label: 'Add to Collection',
         children: () =>
-            getAddToCollectionOptions(addToPageAction, {
+            album ? getAddToCollectionOptions(addToPageAction, {
                 collection: null,
                 hash: album.albumhash,
                 type: 'album',
                 extra: {},
-            }),
+            }) : Promise.resolve([]),
         icon: PlusIcon,
     }
 
     const remove_from_page: Option = {
         label: 'Remove item',
         action: async () => {
+            if (!album) return
             const success = await addOrRemoveItemFromCollection(
                 parseInt(router.currentRoute.value.params.collection as string),
                 album,
@@ -104,6 +110,6 @@ export default async (album?: Album) => {
         add_to_queue,
         add_to_playlist,
         ...[router.currentRoute.value.name === Routes.Page ? remove_from_page : add_to_page],
-        get_find_on_social('album', '', album),
+        get_find_on_social('album', '', album!),
     ]
 }

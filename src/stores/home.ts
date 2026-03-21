@@ -1,12 +1,13 @@
 import { computed, reactive } from 'vue'
 import { defineStore } from 'pinia'
 
-import { getHomePageData } from '@/requests/home'
+import { getHomePageData, getHomeRecommendations } from '@/requests/home'
 import { HomePageItem } from '@/interfaces'
 import { maxAbumCards } from './content-width'
 
 export default defineStore('homepage', () => {
     const homepageData = reactive(<HomePageItem[]>{})
+    const recommendedArtists = reactive<any[]>([])
 
     const homepageItems = computed(() => {
         const items = Object.values(homepageData).filter(item => item.items.length > 0)
@@ -58,9 +59,19 @@ export default defineStore('homepage', () => {
         }
     }
 
+    async function fetchHomeRecommendations() {
+        const data = await getHomeRecommendations()
+        const artists = data?.artists || []
+
+        recommendedArtists.splice(0, recommendedArtists.length, ...artists)
+        return artists
+    }
+
     return {
         homepageData,
         homepageItems,
         fetchAll,
+        recommendedArtists,
+        fetchHomeRecommendations,
     }
 })

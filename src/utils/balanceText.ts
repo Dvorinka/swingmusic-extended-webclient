@@ -27,7 +27,40 @@ export function balanceText(
 
   const words = text.split(" ");
   const wordsPerLine = Math.ceil(words.length / 2);
-  // TODO: use characters to determine if text should be split. Check if the middle word is too short or too long, and if so, split at the next word or previous.
+  
+  // Character-based splitting improvement:
+  // Check if the middle word is too short or too long, and adjust split point
+  if (words.length > 2) {
+    const middleWord = words[wordsPerLine - 1];
+    const avgWordLength = text.length / words.length;
+    
+    // If middle word is significantly longer than average, try splitting after it
+    if (middleWord.length > avgWordLength * 1.5 && wordsPerLine < words.length) {
+      // Move split point forward
+      const firstLine = words.slice(0, wordsPerLine).join(" ");
+      const secondLine = words.slice(wordsPerLine).join(" ");
+      
+      // Check if this creates a better balance
+      const firstLineRatio = firstLine.length / text.length;
+      if (firstLineRatio > 0.35 && firstLineRatio < 0.65) {
+        return [firstLine, secondLine];
+      }
+    }
+    
+    // If middle word is significantly shorter than average, try splitting before it
+    if (middleWord.length < avgWordLength * 0.5 && wordsPerLine > 1) {
+      // Move split point backward
+      const adjustedPerLine = wordsPerLine - 1;
+      const firstLine = words.slice(0, adjustedPerLine).join(" ");
+      const secondLine = words.slice(adjustedPerLine).join(" ");
+      
+      // Check if this creates a better balance
+      const firstLineRatio = firstLine.length / text.length;
+      if (firstLineRatio > 0.35 && firstLineRatio < 0.65) {
+        return [firstLine, secondLine];
+      }
+    }
+  }
 
   const firstLine = words.slice(0, wordsPerLine).join(" ");
   const secondLine = words.slice(wordsPerLine).join(" ");

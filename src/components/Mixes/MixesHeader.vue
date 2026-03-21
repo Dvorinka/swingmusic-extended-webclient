@@ -1,5 +1,5 @@
 <template>
-    <div class="mixheader" v-if="mix.title">
+    <div v-if="mix.title" class="mixheader">
         <MixImage :mix="mix" :on_header="true" />
         <div class="mixinfo">
             <div class="header_type">{{ mix.extra['type'] }} mix</div>
@@ -12,8 +12,8 @@
             </div>
             <div class="buttons">
                 <PlayBtnRect :source="playSources.mix" :bg_color="'#fff'" @click.prevent="$emit('playThis')" />
-                <button class="savebtn" :title="mix.saved ? 'Saved Mix' : 'Save Mix'" @click="saveMix">
-                    <SaveFilledSvg v-if="mix.saved" />
+                <button class="savebtn" :title="savedMix ? 'Saved Mix' : 'Save Mix'" @click="saveMix">
+                    <SaveFilledSvg v-if="savedMix" />
                     <SaveSvg v-else />
                 </button>
             </div>
@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { FullMix } from '@/interfaces'
 import MixImage from './MixImage.vue'
 import PlayBtnRect from '../shared/PlayBtnRect.vue'
@@ -35,13 +36,23 @@ const props = defineProps<{
     mix: FullMix
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
     (e: 'playThis'): void
+    (e: 'savedChanged', payload: { mixId: string; saved: boolean }): void
 }>()
 
+const savedMix = ref(props.mix.saved)
+
+watch(
+    () => props.mix.saved,
+    value => {
+        savedMix.value = value
+    }
+)
+
 async function saveMix() {
-    const initialState = props.mix.saved
-    props.mix.saved = !initialState
+    const initialState = savedMix.value
+    savedMix.value = !initialState
 
     const res = await useAxios({
         url: paths.api.mixes + '/save',
@@ -57,8 +68,11 @@ async function saveMix() {
     })
 
     if (res.status !== 200) {
-        props.mix.saved = initialState
+        savedMix.value = initialState
+        return
     }
+
+    emit('savedChanged', { mixId: props.mix.id, saved: savedMix.value })
 }
 </script>
 

@@ -28,7 +28,7 @@ pinia.use(piniaPluginPersistedstate);
 app.use(pinia);
 app.use(router);
 app.use(autoAnimatePlugin);
-app.use(VWave);
+app.use(VWave, {});
 app.use(MotionPlugin);
 
 app.directive("tooltip", vTooltip);

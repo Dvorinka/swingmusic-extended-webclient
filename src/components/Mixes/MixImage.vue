@@ -1,8 +1,8 @@
 <template>
     <div class="miximage" :class="{ on_header }">
         <div
-            class="infooverlay"
             v-if="!mix.extra['image']"
+            class="infooverlay"
             :style="{
                 color: getTextColor(mix.extra.images?.[0]?.color || ''),
             }"
@@ -13,22 +13,22 @@
             <div class="title ellip">{{ mix.title.replace('Radio', '') }}</div>
         </div>
         <img
-            class="main"
-            :src="getImageUrl(mix.extra['image']?.image || '', false)"
             v-if="mix.extra['image']"
             :key="mix.extra['image']['image']"
+            class="main"
+            :src="getImageUrl(mix.extra['image']?.image || '', false)"
         />
-        <div class="images" v-else>
+        <div v-else class="images">
             <img
                 v-for="image in mix.extra['images']"
+                :key="image['image']"
                 class="shadow-sm"
                 :src="getImageUrl(image, true)"
-                :key="image['image']"
             />
         </div>
         <div
-            class="gradient rounded-sm"
             v-if="!mix.extra['image']"
+            class="gradient rounded-sm"
             :style="{
                 background: gradient,
             }"

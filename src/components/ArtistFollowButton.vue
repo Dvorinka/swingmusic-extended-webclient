@@ -9,11 +9,11 @@ for follow level, auto-download, and quality preferences.
   <div class="artist-follow-container">
     <button 
       v-if="!isFollowing"
-      @click="followArtist"
       :disabled="loading"
       class="follow-btn primary"
+      @click="followArtist"
     >
-      <Icon name="plus" v-if="!loading" />
+      <Icon v-if="!loading" name="plus" />
       <div v-else class="loading-spinner"></div>
       {{ loading ? 'Following...' : 'Follow' }}
     </button>
@@ -22,9 +22,9 @@ for follow level, auto-download, and quality preferences.
       <div class="follow-status">
         <span class="status-text">{{ followStatusText }}</span>
         <button 
-          @click="showFollowOptions = !showFollowOptions"
           class="options-btn"
           title="Follow options"
+          @click="showFollowOptions = !showFollowOptions"
         >
           <Icon name="settings" />
         </button>
@@ -35,8 +35,8 @@ for follow level, auto-download, and quality preferences.
           <label class="option-label">Follow Level</label>
           <select 
             v-model="followLevel" 
-            @change="updateFollowLevel"
             class="option-select"
+            @change="updateFollowLevel"
           >
             <option value="casual">Casual</option>
             <option value="followed">Following</option>
@@ -47,10 +47,10 @@ for follow level, auto-download, and quality preferences.
         <div class="option-item">
           <label class="option-label">
             <input 
-              type="checkbox" 
-              v-model="autoDownload"
-              @change="updateAutoDownload"
+              v-model="autoDownload" 
+              type="checkbox"
               class="option-checkbox"
+              @change="updateAutoDownload"
             />
             Auto-download new releases
           </label>
@@ -60,8 +60,8 @@ for follow level, auto-download, and quality preferences.
           <label class="option-label">Preferred Quality</label>
           <select 
             v-model="preferredQuality" 
-            @change="updateQuality"
             class="option-select"
+            @change="updateQuality"
           >
             <option value="flac">FLAC (Lossless)</option>
             <option value="mp3_320">MP3 320kbps</option>
@@ -71,7 +71,7 @@ for follow level, auto-download, and quality preferences.
         </div>
         
         <div class="option-actions">
-          <button @click="unfollowArtist" class="unfollow-btn">
+          <button class="unfollow-btn" @click="unfollowArtist">
             <Icon name="x" />
             Unfollow
           </button>

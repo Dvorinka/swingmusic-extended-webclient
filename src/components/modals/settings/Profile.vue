@@ -5,11 +5,11 @@
             <div class="name">
                 {{ adding_user ? username : `Hi ${auth.user.username}` }}
             </div>
-            <div class="roles" v-if="!adding_user">
-                <span class="role" v-for="role in auth.user.roles" :key="role"> {{ role }}</span>
+            <div v-if="!adding_user" class="roles">
+                <span v-for="role in auth.user.roles" :key="role" class="role"> {{ role }}</span>
             </div>
         </div>
-        <form class="updateprof" v-auto-animate @submit.prevent="handleSubmit">
+        <form v-auto-animate class="updateprof" @submit.prevent="handleSubmit">
             <div class="names">
                 <label for="username">Username</label>
                 <Input
@@ -19,10 +19,10 @@
             </div>
             <label for="pswd">{{ adding_user ? 'Create' : 'Change' }} password</label>
             <Input type="password" placeholder="⏺⏺⏺⏺⏺⏺⏺⏺" @input="input => (password = input)" />
-            <div class="confirmpassword" v-if="password.length">
+            <div v-if="password.length" class="confirmpassword">
                 <label for="confirmpswd">Confirm password</label>
                 <Input type="password" placeholder="⏺⏺⏺⏺⏺⏺⏺⏺" @input="input => (confirmPassword = input)" />
-                <label class="error" v-if="errorText">{{ errorText }}</label>
+                <label v-if="errorText" class="error">{{ errorText }}</label>
             </div>
             <button v-if="showSubmit">
                 {{ adding_user ? 'Add user' : 'Update' }}
@@ -75,6 +75,8 @@ const errorText = computed(() => {
     if (confirmPassword.value.length && password.value !== confirmPassword.value) {
         return 'Passwords do not match'
     }
+
+    return ''
 })
 
 const payload = computed(() => {

@@ -8,7 +8,7 @@
             <div class="label">Quick scan</div>
             <ReloadSvg />
         </div>
-        <div class="item" @click="modal.showSettingsModal">
+        <div class="item" @click="openSettings">
             <div class="label">Settings</div>
             <SettingsSvg />
         </div>
@@ -22,7 +22,8 @@
 
 <script setup lang="ts">
 import useAuth from '@/stores/auth'
-import useModal from '@/stores/modal'
+import { useRouter } from 'vue-router'
+import { Routes } from '@/router'
 
 import LogoutSvg from '@/assets/icons/logout.svg'
 import ReloadSvg from '@/assets/icons/reload.svg'
@@ -30,7 +31,16 @@ import SettingsSvg from '@/assets/icons/settings.svg'
 import { triggerScan } from '@/requests/settings/rootdirs'
 
 const auth = useAuth()
-const modal = useModal()
+const router = useRouter()
+
+function openSettings() {
+    router.push({
+        name: Routes.settings,
+        params: {
+            tab: 'general',
+        },
+    })
+}
 </script>
 
 <style lang="scss">

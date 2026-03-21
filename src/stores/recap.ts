@@ -7,7 +7,7 @@ export const useRecapStore = defineStore('recap', () => {
   const availableYears = ref<number[]>([])
   const currentRecap = ref(null)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
   // Getters
   const hasRecap = computed(() => currentRecap.value !== null)
@@ -22,8 +22,8 @@ export const useRecapStore = defineStore('recap', () => {
       const response = await axios.get('/api/recap/available-years')
       availableYears.value = response.data.available_years
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load available years'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to load available years'
       throw err
     } finally {
       loading.value = false
@@ -37,8 +37,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.get(`/api/recap/summary/${year}`)
       return response.data.recap
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load recap summary'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to load recap summary'
       throw err
     } finally {
       loading.value = false
@@ -62,8 +62,8 @@ export const useRecapStore = defineStore('recap', () => {
       const response = await axios.get(`/api/recap/details/${year}?${params}`)
       currentRecap.value = response.data.recap
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load recap details'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to load recap details'
       throw err
     } finally {
       loading.value = false
@@ -77,8 +77,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.post(`/api/recap/generate/${year}`)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to generate recap'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to generate recap'
       throw err
     } finally {
       loading.value = false
@@ -92,8 +92,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.post(`/api/recap/video/${year}`, options)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to generate recap video'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to generate recap video'
       throw err
     } finally {
       loading.value = false
@@ -107,8 +107,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.post(`/api/recap/share/${year}`, settings)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to create shareable link'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create shareable link'
       throw err
     } finally {
       loading.value = false
@@ -122,8 +122,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.get(`/api/recap/shared/${token}`)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load shared recap'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to load shared recap'
       throw err
     } finally {
       loading.value = false
@@ -137,8 +137,8 @@ export const useRecapStore = defineStore('recap', () => {
     try {
       const response = await axios.get(`/api/recap/compare/${year1}/${year2}`)
       return response.data
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to compare years'
+    } catch (err: unknown) {
+      error.value = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to compare years'
       throw err
     } finally {
       loading.value = false

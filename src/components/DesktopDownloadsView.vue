@@ -4,17 +4,17 @@
     <div class="downloads-header">
       <h2>Downloads</h2>
       <div class="header-actions">
-        <button @click="clearCompleted" class="btn-secondary">
+        <button class="btn-secondary" @click="clearCompleted">
           🗑️ Clear Completed
         </button>
-        <button @click="openDownloadsFolder" class="btn-primary">
+        <button class="btn-primary" @click="openDownloadsFolder">
           📁 Open Folder
         </button>
       </div>
     </div>
     
     <!-- Active Downloads -->
-    <div class="active-downloads" v-if="activeDownloads.length > 0">
+    <div v-if="activeDownloads.length > 0" class="active-downloads">
       <h3>Active Downloads</h3>
       <div class="download-list">
         <div 
@@ -43,21 +43,21 @@
           <div class="download-actions">
             <button 
               v-if="download.status === 'paused'"
-              @click="resumeDownload(download.id)"
               class="btn-icon"
+              @click="resumeDownload(download.id)"
             >
               ▶️
             </button>
             <button 
               v-else
-              @click="pauseDownload(download.id)"
               class="btn-icon"
+              @click="pauseDownload(download.id)"
             >
               ⏸️
             </button>
             <button 
-              @click="cancelDownload(download.id)"
               class="btn-icon danger"
+              @click="cancelDownload(download.id)"
             >
               ❌
             </button>
@@ -67,7 +67,7 @@
     </div>
     
     <!-- Completed Downloads -->
-    <div class="completed-downloads" v-if="completedDownloads.length > 0">
+    <div v-if="completedDownloads.length > 0" class="completed-downloads">
       <h3>Completed Downloads</h3>
       <div class="download-list">
         <div 
@@ -89,14 +89,14 @@
           
           <div class="download-actions">
             <button 
-              @click="openFileLocation(download.file_path || '')"
               class="btn-icon"
+              @click="openFileLocation(download.file_path || '')"
             >
               📁
             </button>
             <button 
-              @click="removeDownload(download.id)"
               class="btn-icon"
+              @click="removeDownload(download.id)"
             >
               🗑️
             </button>
@@ -110,7 +110,7 @@
       <div class="empty-icon">⬇️</div>
       <h3>No downloads yet</h3>
       <p>Start downloading music from Universal sources to see it here</p>
-      <button @click="openUniversalDownloader" class="btn-primary">
+      <button class="btn-primary" @click="openUniversalDownloader">
         ⬇️ Start Downloading
       </button>
     </div>
@@ -245,7 +245,7 @@ const openDownloadsFolder = async () => {
 }
 
 const openUniversalDownloader = () => {
-  router.push('/spotify-downloader')
+  router.push({ name: 'spotify-downloader' })
 }
 
 const removeDownload = async (downloadId: string) => {

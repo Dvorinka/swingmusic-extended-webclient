@@ -49,5 +49,3 @@ async function searchArtists(query: string, start: number = 0): Promise<{ result
 }
 
 export { searchAlbums, searchArtists, searchTracks, searchTopResults }
-
-// TODO: Rewrite this module using `useAxios` hook

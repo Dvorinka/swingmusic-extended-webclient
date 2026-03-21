@@ -14,10 +14,10 @@
                 min="0"
                 step="0.01"
                 :value="settings.volume"
-                @input="changeVolume"
                 :style="{
                     backgroundSize: `${(settings.volume / 1) * 100}% 100%`,
                 }"
+                @input="changeVolume"
             />
             <div className="volume_indicator">{{ ((settings.volume / 1) * 100).toFixed(0) }}</div>
         </div>

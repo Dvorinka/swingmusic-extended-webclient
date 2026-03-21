@@ -1,5 +1,5 @@
 <template>
-    <div class="folder-view v-scroll-page" style="height: 100%" :class="{ isSmall, isMedium }" v-if="mix.title">
+    <div v-if="mix.title" class="folder-view v-scroll-page" style="height: 100%" :class="{ isSmall, isMedium }">
         <DynamicScroller
             id="contentscroller"
             :items="scrollerItems"

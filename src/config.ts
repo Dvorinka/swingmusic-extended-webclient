@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const development = import.meta.env.DEV
+const backendPort = import.meta.env.VITE_SWINGMUSIC_BACKEND_PORT || '1970'
 
 export function getBaseUrl() {
     if (!development) {
@@ -9,7 +10,7 @@ export function getBaseUrl() {
 
     const base_url = window.location.origin
     const splits = base_url.split(':')
-    return base_url.replace(splits[splits.length - 1], '1980')
+    return base_url.replace(splits[splits.length - 1], backendPort)
 }
 
 const base_url = getBaseUrl()
@@ -163,6 +164,15 @@ export const paths = {
             get login() {
                 return this.base + '/login'
             },
+            get bootstrapStatus() {
+                return this.base + '/bootstrap/status'
+            },
+            get bootstrapOwner() {
+                return this.base + '/bootstrap/owner'
+            },
+            get inviteAccept() {
+                return this.base + '/invite/accept'
+            },
             get logout() {
                 return this.base + '/logout'
             },
@@ -186,6 +196,24 @@ export const paths = {
             },
             get pair() {
                 return this.base + '/getpaircode'
+            },
+        },
+        setup: {
+            base: '/setup',
+            get status() {
+                return this.base + '/status'
+            },
+            get bootstrap() {
+                return this.base + '/bootstrap'
+            },
+            get directory() {
+                return this.base + '/directory'
+            },
+            get indexProgress() {
+                return this.base + '/index-progress'
+            },
+            get indexStart() {
+                return this.base + '/index/start'
             },
         },
         backups: {

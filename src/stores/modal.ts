@@ -10,7 +10,6 @@ export enum ModalOptions {
     setRootDirs,
     saveFolderAsPlaylist,
     login,
-    settings,
 }
 
 export default defineStore('newModal', {
@@ -75,9 +74,6 @@ export default defineStore('newModal', {
         },
         showLoginModal() {
             this.showModal(ModalOptions.login)
-        },
-        showSettingsModal() {
-            this.showModal(ModalOptions.settings)
         },
         hideModal() {
             this.visible = false

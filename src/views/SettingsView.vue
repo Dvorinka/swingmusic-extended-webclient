@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="settingspage content-page"
-    style="height: 100%; overflow: auto;"
-  >
+  <div class="settingspage content-page">
     <Content />
   </div>
 </template>
@@ -25,3 +22,18 @@ onMounted(() => {
   });
 });
 </script>
+
+<style lang="scss" scoped>
+.settingspage {
+  height: 100%;
+  overflow: auto;
+  background: #020305;
+  padding-top: 1.5rem;
+}
+
+@include mediumPhones {
+  .settingspage {
+    padding-top: 0.75rem;
+  }
+}
+</style>

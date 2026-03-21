@@ -29,8 +29,12 @@ const MixView = () => import('@/views/MixView.vue')
 const MixListView = () => import('@/views/MixListView.vue')
 const Collection = () => import('@/views/Collections/Collection.vue')
 const UniversalMusicDownloader = () => import('@/views/UniversalMusicDownloader.vue')
+const LibraryView = () => import('@/views/LibraryView.vue')
 const MusicCatalogBrowser = () => import('@/components/MusicCatalogBrowser.vue')
-const MusicUpload = () => import('@/components/MusicUpload.vue')
+const GlobalArtistView = () => import('@/components/GlobalArtistView.vue')
+const GlobalAlbumView = () => import('@/views/GlobalAlbumView.vue')
+const GlobalPlaylistView = () => import('@/views/GlobalPlaylistView.vue')
+const DragonflyDashboard = () => import('@/components/DragonflyDashboard.vue')
 
 const folder = {
     path: '/folder/:path',
@@ -128,9 +132,24 @@ const artistDiscography = {
 }
 
 const settings = {
-    path: '/settings/:tab',
+    path: '/settings/:tab?',
     name: 'SettingsView',
     component: SettingsView,
+    beforeEnter: (to: any) => {
+        const allowedTabs = ['general', 'account', 'about']
+        const tab = (to.params.tab || '').toString().toLowerCase()
+
+        if (!tab || !allowedTabs.includes(tab)) {
+            return {
+                name: 'SettingsView',
+                params: {
+                    tab: 'general',
+                },
+            }
+        }
+
+        return true
+    },
 }
 
 const search = {
@@ -175,6 +194,12 @@ const Home = {
     component: HomeView,
 }
 
+const Library = {
+    path: '/library',
+    name: 'LibraryView',
+    component: LibraryView,
+}
+
 const AlbumListView = {
     path: '/albums',
     name: 'AlbumListView',
@@ -217,16 +242,52 @@ const universalDownloader = {
     component: UniversalMusicDownloader,
 }
 
+const spotifyDownloader = {
+    path: '/spotify-downloader',
+    name: 'spotify-downloader',
+    component: UniversalMusicDownloader,
+}
+
+const spotifyTrack = {
+    path: '/spotify/track/:id',
+    name: 'spotify-track',
+    component: UniversalMusicDownloader,
+}
+
+const spotifyPlaylist = {
+    path: '/spotify/playlist/:id',
+    name: 'spotify-playlist',
+    component: UniversalMusicDownloader,
+}
+
 const musicCatalog = {
     path: '/catalog',
     name: 'MusicCatalogBrowser',
     component: MusicCatalogBrowser,
 }
 
-const musicUpload = {
-    path: '/upload',
-    name: 'MusicUpload',
-    component: MusicUpload,
+const globalArtist = {
+    path: '/global/artist/:id',
+    name: 'global-artist',
+    component: GlobalArtistView,
+}
+
+const globalAlbum = {
+    path: '/global/album/:id',
+    name: 'global-album',
+    component: GlobalAlbumView,
+}
+
+const globalPlaylist = {
+    path: '/global/playlist/:id',
+    name: 'global-playlist',
+    component: GlobalPlaylistView,
+}
+
+const dragonflyDashboard = {
+    path: '/dragonfly',
+    name: 'DragonflyDashboard',
+    component: DragonflyDashboard,
 }
 
 const routes = [
@@ -246,6 +307,7 @@ const routes = [
     favoriteArtists,
     NowPlayingView,
     Home,
+    Library,
     AlbumListView,
     ArtistListView,
     LyricsView,
@@ -254,8 +316,14 @@ const routes = [
     MixList,
     PageView,
     universalDownloader,
+    spotifyDownloader,
+    spotifyTrack,
+    spotifyPlaylist,
     musicCatalog,
-    musicUpload,
+    globalArtist,
+    globalAlbum,
+    globalPlaylist,
+    dragonflyDashboard,
 ]
 
 const Routes = {
@@ -275,6 +343,7 @@ const Routes = {
     favoriteArtists: favoriteArtists.name,
     nowPlaying: NowPlayingView.name,
     Home: Home.name,
+    library: Library.name,
     AlbumList: AlbumListView.name,
     ArtistList: ArtistListView.name,
     Lyrics: LyricsView.name,
@@ -283,8 +352,14 @@ const Routes = {
     MixList: MixList.name,
     Page: PageView.name,
     UniversalMusicDownloader: universalDownloader.name,
+    spotifyDownloader: spotifyDownloader.name,
+    spotifyTrack: spotifyTrack.name,
+    spotifyPlaylist: spotifyPlaylist.name,
     MusicCatalogBrowser: musicCatalog.name,
-    MusicUpload: musicUpload.name,
+    globalArtist: globalArtist.name,
+    globalAlbum: globalAlbum.name,
+    globalPlaylist: globalPlaylist.name,
+    DragonflyDashboard: dragonflyDashboard.name,
 }
 
 const router = createRouter({

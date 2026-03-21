@@ -1,18 +1,18 @@
 <template>
-    <form action="" v-if="delete">
+    <form v-if="props.delete" action="">
         <br>
         <div>Are you sure you want to delete this collection?</div>
         <br />
-        <button @click.prevent="submit" class="critical">Yes, Delete</button>
+        <button class="critical" @click.prevent="submit">Yes, Delete</button>
     </form>
-    <form class="playlist-modal" @submit.prevent="submit" v-else>
+    <form v-else class="playlist-modal" @submit.prevent="submit">
         <label for="name">Collection name</label>
         <br />
-        <input type="search" class="rounded-sm" id="name" :value="collection?.name" />
+        <input id="name" type="search" class="rounded-sm" :value="collection?.name" />
         <br />
         <label for="description">Description</label>
         <br />
-        <input type="search" class="rounded-sm" id="description" :value="collection?.extra.description" />
+        <input id="description" type="search" class="rounded-sm" :value="collection?.extra.description" />
         <br /><br />
         <button type="submit">{{ collection ? 'Update' : 'Create' }}</button>
     </form>
@@ -72,8 +72,6 @@ async function submit(e: Event) {
         const updatedPage = await updateCollection(props.collection, name, description)
 
         if (updatedPage) {
-            props.collection.name = updatedPage.name
-            props.collection.extra.description = updatedPage.extra.description
             new Notification('Collection updated', NotifType.Success)
             emit('hideModal')
         }

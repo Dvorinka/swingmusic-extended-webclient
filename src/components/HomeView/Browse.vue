@@ -8,8 +8,8 @@
         class="browseitem rounded-sm"
         :to="{ name: i.route || '', params: i.params }"
         :style="{ width: `${album_card_with - 24}px` }"
-        @click="i.action && i.action()"
         :class="i.class"
+        @click="i.action && i.action()"
       >
         <div class="icon" v-html="i.icon"></div>
         <div style="width: 100%">

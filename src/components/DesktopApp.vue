@@ -1,15 +1,15 @@
 <template>
   <div class="desktop-app">
     <!-- Custom Title Bar -->
-    <div class="title-bar" v-if="!isWeb">
+    <div v-if="!isWeb" class="title-bar">
       <div class="title-bar-left">
         <img src="/logo-fill.light.svg" alt="SwingMusic" class="app-logo" />
         <span class="app-title">SwingMusic</span>
       </div>
       <div class="title-bar-right">
-        <button @click="minimizeWindow" class="title-bar-btn">−</button>
-        <button @click="maximizeWindow" class="title-bar-btn">□</button>
-        <button @click="closeWindow" class="title-bar-btn close">×</button>
+        <button class="title-bar-btn" @click="minimizeWindow">−</button>
+        <button class="title-bar-btn" @click="maximizeWindow">□</button>
+        <button class="title-bar-btn close" @click="closeWindow">×</button>
       </div>
     </div>
 

@@ -4,19 +4,19 @@
         <div class="index">{{ index }}</div>
         <img :src="getItemImage(item)" class="chartimage" :class="name" />
         <div class="iteminfo">
-            <div class="title" :title="item.name" v-if="isArtist">
+            <div v-if="isArtist" class="title" :title="item.name">
                 {{ item.name }} <MasterFlag v-if="item.trend?.is_new" :text="item.trend?.is_new ? 'New' : ''" :bitrate="1900"/>
             </div>
-            <div class="title" :title="item.title" v-if="isAlbumOrTrack">
+            <div v-if="isAlbumOrTrack" class="title" :title="item.title">
                 {{ item.title }} <MasterFlag v-if="item.trend?.is_new" :text="item.trend?.is_new ? 'New' : ''" :bitrate="1900"/>
             </div>
-            <div class="artist" v-if="isAlbumOrTrack">
+            <div v-if="isAlbumOrTrack" class="artist">
                 <ArtistName
                     :artists="item.artists ? item.artists : item.albumartists"
                     :albumartists="item.albumartists"
                 />
             </div>
-            <div class="artist" v-if="isArtist">
+            <div v-if="isArtist" class="artist">
                 {{ item.extra['playcount'] }} track plays
             </div>
         </div>
@@ -36,13 +36,13 @@ import ArtistName from '../shared/ArtistName.vue'
 import { Routes } from '@/router'
 import MasterFlag from '../shared/MasterFlag.vue'
 
-type name = 'artist' | 'album' | 'track'
+type ChartName = 'artist' | 'album' | 'track'
 type ChartItem = Artist | Album | Track
 
 const props = defineProps<{
     item: ChartItem
     index: number
-    name: name
+    name: ChartName
 }>()
 
 const isArtist = computed(() => props.name === 'artist')

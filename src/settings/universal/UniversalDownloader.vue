@@ -18,8 +18,8 @@
       <div class="setting-item">
         <label>
           <input 
-            type="checkbox" 
-            v-model="settings.autoAddToLibrary"
+            v-model="settings.autoAddToLibrary" 
+            type="checkbox"
           />
           Automatically add downloads to library
         </label>
@@ -27,8 +27,8 @@
       <div class="setting-item">
         <label>Max Concurrent Downloads</label>
         <input 
-          type="number" 
-          v-model="settings.maxConcurrentDownloads"
+          v-model="settings.maxConcurrentDownloads" 
+          type="number"
           min="1"
           max="10"
         />
@@ -45,8 +45,8 @@
         >
           <label>
             <input 
-              type="checkbox" 
-              v-model="service.enabled"
+              v-model="service.enabled" 
+              type="checkbox"
               @change="updateService(service)"
             />
             <span class="service-name">{{ service.name }}</span>
@@ -57,10 +57,10 @@
     </div>
 
     <div class="settings-actions">
-      <button @click="saveSettings" class="save-button">
+      <button class="save-button" @click="saveSettings">
         Save Settings
       </button>
-      <button @click="resetSettings" class="reset-button">
+      <button class="reset-button" @click="resetSettings">
         Reset to Defaults
       </button>
     </div>

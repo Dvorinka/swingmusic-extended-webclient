@@ -4,12 +4,19 @@ import useModal from '@/stores/modal'
 
 import useLoaderStore from '@/stores/loader'
 import { logoutUser } from './auth'
+import { getBaseUrl } from '@/config'
 
 if (window.location.protocol === 'https:') {
     const meta = document.createElement('meta');
     meta.httpEquiv = 'Content-Security-Policy';
     meta.content = 'upgrade-insecure-requests';
     document.head.appendChild(meta);
+}
+
+// Configure axios defaults
+const baseURL = getBaseUrl()
+if (baseURL) {
+    axios.defaults.baseURL = baseURL
 }
 
 export default async (args: FetchProps, withCredentials: boolean = true) => {
@@ -45,6 +52,10 @@ export default async (args: FetchProps, withCredentials: boolean = true) => {
             useModal().showLoginModal()
         }
 
+        if (error.response?.status === 423 && error.response?.data?.error === 'setup_incomplete') {
+            useModal().showLoginModal()
+        }
+
         // server config folder nuked which can
         // can cause a signature mismatch error
         // console.log(error.response.data.msg == "Signature verification failed")
@@ -68,5 +79,3 @@ export default async (args: FetchProps, withCredentials: boolean = true) => {
         }
     }
 }
-
-// TODO: Set base url in axios config

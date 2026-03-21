@@ -9,7 +9,7 @@
         <div></div>
         <br />
         <div class="itemlist">
-            <div class="item rounded-sm" v-for="backup in backups" :key="backup.name">
+            <div v-for="backup in backups" :key="backup.name" class="item rounded-sm">
                 <div class="texts">
                     <div class="item__info">
                         <div class="item__date">

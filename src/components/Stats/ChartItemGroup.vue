@@ -1,8 +1,8 @@
 <template>
     <div class="chartgroup rounded" :class="settings.statsgroup">
-        <ChartsHeader :name="settings.statsgroup" @change-period="changePeriod" @change-group="changeGroup" :period="settings.statsperiod" />
+        <ChartsHeader :name="settings.statsgroup" :period="settings.statsperiod" @change-period="changePeriod" @change-group="changeGroup" />
         <br />
-        <div class="noitems rounded-sm" v-if="items.length === 0">
+        <div v-if="items.length === 0" class="noitems rounded-sm">
             <div v-if="loading" class="loading">
                 <div class="spinner"></div>
                 <span>fetching data...</span>

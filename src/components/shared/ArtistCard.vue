@@ -7,8 +7,8 @@
             },
         }"
         class="artist-card"
-        @contextmenu.prevent="showContextMenu"
         :class="{ 'context-menu-open': contextMenuFlag }"
+        @contextmenu.prevent="showContextMenu"
     >
         <div class="image circular">
             <img class="artist-image circular" :src="imguri + artist.image" />

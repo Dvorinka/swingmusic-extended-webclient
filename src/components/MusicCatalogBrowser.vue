@@ -7,17 +7,17 @@
           <Search class="search-icon" />
           <input
             v-model="searchQuery"
-            @keyup.enter="performSearch"
-            @input="onSearchInput"
             type="text"
             placeholder="Search global catalog..."
             class="search-input"
             :disabled="loading"
+            @keyup.enter="performSearch"
+            @input="onSearchInput"
           />
           <button
-            @click="performSearch"
             :disabled="!searchQuery.trim() || loading"
             class="search-button"
+            @click="performSearch"
           >
             <Loader v-if="loading" class="small-loader" />
             <span v-else>Search</span>
@@ -39,11 +39,11 @@
       
       <!-- Quick Actions -->
       <div class="quick-actions">
-        <button @click="fetchTrending" :disabled="loading" class="action-button">
+        <button :disabled="loading" class="action-button" @click="fetchTrending">
           <TrendingUp />
           Trending
         </button>
-        <button @click="showRecommendations" :disabled="loading" class="action-button">
+        <button :disabled="loading" class="action-button" @click="showRecommendations">
           <Sparkles />
           For You
         </button>
@@ -54,7 +54,7 @@
     <div v-if="error" class="error-message">
       <AlertCircle />
       <span>{{ error }}</span>
-      <button @click="clearError" class="close-error">×</button>
+      <button class="close-error" @click="clearError">×</button>
     </div>
     
     <!-- Main Content Area -->
@@ -82,13 +82,12 @@
         <!-- Results Tabs -->
         <div class="results-tabs">
           <button
-            v-for="(count, type) in searchResultCounts"
-            v-if="count > 0"
+            v-for="[type, count] in availableResultTabs"
             :key="type"
-            @click="activeResultTab = type"
             :class="['tab-button', { active: activeResultTab === type }]"
+            @click="activeResultTab = type"
           >
-            {{ (type as string).charAt(0).toUpperCase() + (type as string).slice(1) }}
+            {{ type.charAt(0).toUpperCase() + type.slice(1) }}
             <span class="tab-count">{{ count }}</span>
           </button>
         </div>
@@ -118,21 +117,35 @@
                     <span class="duration">{{ formatDuration(track.duration_ms) }}</span>
                     <span class="popularity">{{ track.popularity }}/100</span>
                     <span v-if="track.explicit" class="explicit-tag">E</span>
+                    <span
+                      v-if="track.availability?.state"
+                      class="availability-tag"
+                      :class="`avail-${track.availability.state}`"
+                    >
+                      {{ track.availability.state }}
+                    </span>
+                    <span
+                      v-if="track.quality_badge"
+                      class="quality-tag"
+                      :class="`quality-${track.quality_badge.color}`"
+                    >
+                      {{ track.quality_badge.label }}
+                    </span>
                   </div>
                 </div>
                 <div class="track-actions">
-                  <button @click.stop="downloadTrack(track)" class="download-btn" title="Download">
+                  <button class="download-btn" title="Download" @click.stop="downloadTrack(track)">
                     <Download />
                   </button>
-                  <button @click.stop="addToQueue(track)" class="queue-btn" title="Add to Queue">
+                  <button class="queue-btn" title="Add to Queue" @click.stop="addToQueue(track)">
                     <Plus />
                   </button>
                   <a
                     :href="getSpotifyUrl(track)"
                     target="_blank"
-                    @click.stop
                     class="spotify-btn"
                     title="Open in Spotify"
+                    @click.stop
                   >
                     <ExternalLink />
                   </a>
@@ -161,10 +174,10 @@
                   <p class="album-artist">{{ album.artist }}</p>
                   <p class="album-release">{{ album.release_date }}</p>
                   <div class="album-actions">
-                    <button @click.stop="downloadAlbum(album)" class="download-btn" title="Download">
+                    <button class="download-btn" title="Download" @click.stop="downloadAlbum(album)">
                       <Download />
                     </button>
-                    <button @click.stop="viewAlbumDetails(album)" class="view-btn" title="View Details">
+                    <button class="view-btn" title="View Details" @click.stop="viewAlbumDetails(album)">
                       <Eye />
                     </button>
                   </div>
@@ -193,10 +206,10 @@
                   <p class="artist-followers">{{ formatFollowers(artist.data?.followers) }} followers</p>
                   <p class="artist-popularity">{{ artist.popularity }}/100 popularity</p>
                   <div class="artist-actions">
-                    <button @click.stop="viewArtistDetails(artist)" class="view-btn" title="View Details">
+                    <button class="view-btn" title="View Details" @click.stop="viewArtistDetails(artist)">
                       <Eye />
                     </button>
-                    <button @click.stop="downloadArtistTopTracks(artist)" class="download-btn" title="Download Top Tracks">
+                    <button class="download-btn" title="Download Top Tracks" @click.stop="downloadArtistTopTracks(artist)">
                       <Download />
                     </button>
                   </div>
@@ -224,10 +237,10 @@
                   <h4 class="playlist-title">{{ playlist.title }}</h4>
                   <p class="playlist-owner">By {{ playlist.artist }}</p>
                   <div class="playlist-actions">
-                    <button @click.stop="downloadPlaylist(playlist)" class="download-btn" title="Download">
+                    <button class="download-btn" title="Download" @click.stop="downloadPlaylist(playlist)">
                       <Download />
                     </button>
-                    <button @click.stop="viewPlaylistDetails(playlist)" class="view-btn" title="View Details">
+                    <button class="view-btn" title="View Details" @click.stop="viewPlaylistDetails(playlist)">
                       <Eye />
                     </button>
                   </div>
@@ -271,7 +284,7 @@
                 </div>
               </div>
               <div class="track-actions">
-                <button @click.stop="downloadTrack(track)" class="download-btn">
+                <button class="download-btn" @click.stop="downloadTrack(track)">
                   <Download />
                 </button>
               </div>
@@ -339,11 +352,11 @@
           <p>Search for artists, albums, tracks, and playlists from around the world</p>
           
           <div class="quick-start-actions">
-            <button @click="fetchTrending" class="primary-action">
+            <button class="primary-action" @click="fetchTrending">
               <TrendingUp />
               Discover Trending
             </button>
-            <button @click="showRecommendations" class="secondary-action">
+            <button class="secondary-action" @click="showRecommendations">
               <Sparkles />
               Get Recommendations
             </button>
@@ -361,12 +374,12 @@
 </template>
 
 <script setup lang="ts">
+import axios from 'axios'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import useMusicCatalogStore, { type CatalogItem } from '@/stores/music-catalog'
 import useAuthStore from '@/stores/auth'
-import { usePlayer } from '@/stores/player'
-import useQueueStore from '@/stores/queue'
+import { NotifType, Notification } from '@/stores/notification'
 
 // Icons
 import {
@@ -385,8 +398,6 @@ import {
 // Stores
 const musicCatalogStore = useMusicCatalogStore()
 const authStore = useAuthStore()
-const playerStore = usePlayer()
-const queueStore = useQueueStore()
 
 // Router
 const router = useRouter()
@@ -396,6 +407,7 @@ const searchQuery = ref('')
 const searchType = ref('all')
 const activeResultTab = ref('tracks')
 const searchDebounceTimer = ref<number | null>(null)
+const previewAudio = ref<HTMLAudioElement | null>(null)
 
 // Computed
 const loading = computed(() => musicCatalogStore.loading)
@@ -403,8 +415,17 @@ const error = computed(() => musicCatalogStore.error)
 const hasSearchResults = computed(() => musicCatalogStore.hasSearchResults)
 const searchResults = computed(() => musicCatalogStore.searchResults)
 const searchResultCounts = computed(() => musicCatalogStore.searchResultCounts)
+const availableResultTabs = computed(() => {
+  return Object.entries(searchResultCounts.value).filter(([, count]) => count > 0) as Array<
+    [string, number]
+  >
+})
 const trendingContent = computed(() => musicCatalogStore.trendingContent)
 const recommendations = computed(() => musicCatalogStore.recommendations)
+
+const notify = (message: string, type: NotifType = NotifType.Info) => {
+  new Notification(message, type)
+}
 
 // Methods
 const performSearch = async () => {
@@ -453,14 +474,66 @@ const showRecommendations = async () => {
 
 const playTrackPreview = (track: CatalogItem) => {
   if (track.preview_url) {
-    playerStore.playPreview(track.preview_url)
+    if (previewAudio.value) {
+      previewAudio.value.pause()
+      previewAudio.value = null
+    }
+
+    const audio = new Audio(track.preview_url)
+    audio.volume = 0.9
+    previewAudio.value = audio
+    audio.play().catch(() => {
+      notify('Preview playback was blocked by the browser.', NotifType.Warning)
+    })
   } else {
-    // Show notification that preview is not available
-    console.log('No preview available for this track')
+    notify('No preview available for this track.', NotifType.Info)
   }
 }
 
+const processImportOrDownload = async (track: CatalogItem) => {
+  const actionType = track.download_action?.type || track.availability?.download_action?.type
+  if (actionType !== 'import_or_download' || !track.trackhash) {
+    return false
+  }
+
+  try {
+    const { data } = await axios.post('/api/downloads/imports/candidates', {
+      trackhash: track.trackhash,
+    })
+
+    const candidates = data?.candidates || []
+    if (!candidates.length) {
+      return false
+    }
+
+    const shouldImport = window.confirm(
+      'This song already exists on the server from another user. Import it into your library?'
+    )
+
+    if (shouldImport) {
+      await axios.post('/api/downloads/imports/confirm', {
+        trackhash: track.trackhash,
+        source_userid: candidates[0].user_id,
+      })
+
+      notify(`Imported: ${track.title}`, NotifType.Success)
+      await performSearch()
+      return true
+    }
+  } catch (error: any) {
+    const message = error?.response?.data?.error || 'Failed to load import candidates'
+    notify(message, NotifType.Error)
+  }
+
+  return false
+}
+
 const downloadTrack = async (track: CatalogItem) => {
+  const handledByImport = await processImportOrDownload(track)
+  if (handledByImport) {
+    return
+  }
+
   // Navigate to Spotify downloader with the track URL
   const spotifyUrl = musicCatalogStore.getSpotifyUrl(track)
   router.push({
@@ -494,20 +567,8 @@ const downloadPlaylist = async (playlist: CatalogItem) => {
 }
 
 const addToQueue = (track: CatalogItem) => {
-  // Add track to queue (this would need integration with the actual track data)
-  queueStore.addTrack({
-    trackid: track.spotify_id,
-    title: track.title,
-    artists: track.artist.split(', '),
-    album: track.album || '',
-    image: track.image_url || '',
-    duration: track.duration_ms || 0,
-    isrc: '',
-    tracknumber: 0,
-    discnumber: 0,
-    bitrate: 320,
-    filetype: 'mp3'
-  })
+  notify('Global catalog tracks are not streamable yet. Queue a download first.', NotifType.Info)
+  downloadTrack(track)
 }
 
 const viewAlbumDetails = async (album: CatalogItem) => {
@@ -533,8 +594,15 @@ const viewArtistDetails = async (artist: CatalogItem) => {
 }
 
 const viewPlaylistDetails = (playlist: CatalogItem) => {
-  // Navigate to playlist view or show modal
-  console.log('View playlist details:', playlist)
+  if (!playlist.spotify_id) {
+    notify('Missing Spotify playlist ID', NotifType.Error)
+    return
+  }
+
+  router.push({
+    name: 'global-playlist',
+    params: { id: playlist.spotify_id }
+  })
 }
 
 const clearError = () => {
@@ -846,7 +914,8 @@ watch(() => authStore.user, async (newUser) => {
 
 .track-meta {
   display: flex;
-  gap: 1rem;
+  gap: 0.45rem;
+  flex-wrap: wrap;
   font-size: 0.8rem;
   color: var(--text-tertiary);
 }
@@ -857,6 +926,54 @@ watch(() => authStore.user, async (newUser) => {
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.7rem;
+}
+
+.availability-tag,
+.quality-tag {
+  border-radius: 999px;
+  padding: 0.1rem 0.42rem;
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.avail-available {
+  background: rgba(84, 219, 160, 0.18);
+  color: #baf9e4;
+}
+
+.avail-missing {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.avail-queued {
+  background: rgba(105, 169, 255, 0.22);
+  color: #d8e8ff;
+}
+
+.avail-failed {
+  background: rgba(255, 118, 118, 0.2);
+  color: #ffd4d4;
+}
+
+.quality-green {
+  background: rgba(84, 219, 160, 0.2);
+  color: #d4ffef;
+}
+
+.quality-blue {
+  background: rgba(105, 169, 255, 0.22);
+  color: #d8e8ff;
+}
+
+.quality-orange {
+  background: rgba(255, 173, 92, 0.2);
+  color: #ffe8cc;
+}
+
+.quality-gray {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .track-actions {

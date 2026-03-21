@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="$route.params.tab == 'home'"
-    class="now-playing-view v-scroll-page"
+    class="now-playing-view v-scroll-page fullscreen-mode"
     :class="{ isSmall, isMedium }"
   >
     <DynamicScroller
@@ -80,5 +80,41 @@ onMounted(() => updatePageTitle("Now Playing"));
 <style lang="scss">
 .now-playing-view {
   height: 100%;
+  
+  // Fullscreen mode styles
+  &.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: #000;
+    
+    // Hide bottom bar when in fullscreen mode
+    :global(.b-bar) {
+      display: none !important;
+    }
+    
+    // Hide navigation when in fullscreen mode
+    :global(.topnav) {
+      display: none !important;
+    }
+    
+    // Hide sidebar when in fullscreen mode  
+    :global(.left-sidebar) {
+      display: none !important;
+    }
+    
+    // Hide right sidebar when in fullscreen mode
+    :global(.right-sidebar) {
+      display: none !important;
+    }
+    
+    // Make content take full viewport
+    .scroller {
+      height: 100vh !important;
+    }
+  }
 }
 </style>

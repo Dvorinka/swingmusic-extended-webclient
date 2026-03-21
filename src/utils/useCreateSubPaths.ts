@@ -34,7 +34,9 @@ export default function createSubPaths(newpath: string, oldpath: string): [strin
     //   newlist.shift();
     // }
 
-    if (oldpath.includes(newpath)) {
+    // Use startsWith for proper path prefix matching
+    // This fixes the issue where "/music/videos" would incorrectly match "/music"
+    if (newpath && oldpath.startsWith(newpath)) {
         const oldlist = oldpath.split('/').filter(Boolean)
 
         const current = newlist.slice(-1)[0]
@@ -67,5 +69,3 @@ export default function createSubPaths(newpath: string, oldpath: string): [strin
         return paths.reverse()
     }
 }
-
-// TODO: Fix the includes issue.

@@ -14,11 +14,19 @@ import { getBaseUrl, paths } from '@/config'
 import updateMediaNotif from '@/helpers/mediaNotification'
 import { crossFade } from '@/utils/audio/crossFade'
 
+type BrowserWindow = Window &
+    typeof globalThis & {
+        webkitAudioContext?: typeof AudioContext
+    }
+
 class AudioSource {
     private sources: HTMLAudioElement[] = []
     private playingSourceIndex: number = 0
     private handlers: { [key: string]: (err: Event | string) => void } = {}
     private requiredAPBlockBypass: boolean = false
+    private audioContext: AudioContext | null = null
+    private directGains: GainNode[] = []
+    private normalizedGains: GainNode[] = []
     settings: ReturnType<typeof useSettings> | null = null
 
     constructor() {
@@ -43,6 +51,7 @@ class AudioSource {
     preloadWithUri(uri: string) {
         const audio = this.standbySource
         if (!this.settings) return audio
+        this.syncAudioProcessing()
         audio.src = uri
         audio.muted = this.settings.mute
         audio.volume = this.settings.volume
@@ -64,6 +73,8 @@ class AudioSource {
 
     assignSettings(settings: ReturnType<typeof useSettings>) {
         this.settings = settings
+        this.setupAudioProcessingChain()
+        this.syncAudioProcessing()
         this.sources.forEach(audio => {
             audio.muted = settings.mute
             audio.volume = settings.volume
@@ -86,6 +97,9 @@ class AudioSource {
             ? Math.floor(trackSilence.ending_file / 1000 - trackSilence.starting_file / 1000)
             : null
 
+        this.syncAudioProcessing()
+        await this.resumeAudioContext()
+
         if (this.requiredAPBlockBypass) this.applyAPBlockBypass()
 
         await this.playingSource.play().catch(this.handlers.onPlaybackError)
@@ -93,6 +107,26 @@ class AudioSource {
         navigator.mediaSession.setPositionState({
             duration: trackDuration || this.playingSource.duration,
             position: this.playingSource.currentTime,
+        })
+    }
+
+    syncAudioProcessing() {
+        if (!this.settings) return
+
+        this.setupAudioProcessingChain()
+
+        if (!this.audioContext || !this.directGains.length || !this.normalizedGains.length) {
+            return
+        }
+
+        const normalizeVolume = this.settings.normalize_volume
+
+        this.directGains.forEach(gain => {
+            gain.gain.value = normalizeVolume ? 0 : 1
+        })
+
+        this.normalizedGains.forEach(gain => {
+            gain.gain.value = normalizeVolume ? 1 : 0
         })
     }
 
@@ -118,6 +152,83 @@ class AudioSource {
 
         this.requiredAPBlockBypass = false
     }
+
+    private setupAudioProcessingChain() {
+        if (this.audioContext || typeof window === 'undefined') return
+
+        const AudioContextConstructor = window.AudioContext || (window as BrowserWindow).webkitAudioContext
+        if (!AudioContextConstructor) return
+
+        try {
+            this.audioContext = new AudioContextConstructor()
+
+            this.sources.forEach(audio => {
+                if (!this.audioContext) return
+
+                const sourceNode = this.audioContext.createMediaElementSource(audio)
+                const directGain = this.audioContext.createGain()
+                const normalizedGain = this.audioContext.createGain()
+                const compressor = this.audioContext.createDynamicsCompressor()
+
+                compressor.threshold.value = -24
+                compressor.knee.value = 30
+                compressor.ratio.value = 12
+                compressor.attack.value = 0.003
+                compressor.release.value = 0.25
+
+                sourceNode.connect(directGain)
+                directGain.connect(this.audioContext.destination)
+
+                sourceNode.connect(compressor)
+                compressor.connect(normalizedGain)
+                normalizedGain.connect(this.audioContext.destination)
+
+                this.directGains.push(directGain)
+                this.normalizedGains.push(normalizedGain)
+            })
+        } catch (error) {
+            console.warn('Normalization audio chain setup failed.', error)
+            this.audioContext = null
+            this.directGains = []
+            this.normalizedGains = []
+        }
+    }
+
+    private async resumeAudioContext() {
+        if (!this.audioContext || this.audioContext.state !== 'suspended') return
+        await this.audioContext.resume().catch(() => {})
+    }
+}
+
+function resolveAdaptiveStreamingQuality(manualQuality: string) {
+    if (typeof navigator === 'undefined') {
+        return manualQuality
+    }
+
+    const network = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection
+    const effectiveType = network?.effectiveType
+
+    if (!effectiveType) {
+        return manualQuality
+    }
+
+    if (effectiveType === 'slow-2g') {
+        return '96'
+    }
+
+    if (effectiveType === '2g') {
+        return '128'
+    }
+
+    if (effectiveType === '3g') {
+        return '320'
+    }
+
+    if (effectiveType === '4g') {
+        return 'original'
+    }
+
+    return manualQuality
 }
 
 export function getUrl(filepath: string, trackhash: string, use_legacy: boolean) {
@@ -125,7 +236,11 @@ export function getUrl(filepath: string, trackhash: string, use_legacy: boolean)
     // we change the playback engine to properly support
     // the chunked streaming endpoint.
     use_legacy = true
-    const { streaming_container, streaming_quality } = useSettings()
+    const settings = useSettings()
+    const streaming_quality = settings.adaptive_streaming
+        ? resolveAdaptiveStreamingQuality(settings.streaming_quality)
+        : settings.streaming_quality
+    const { streaming_container } = settings
 
     const url = `${paths.api.files}/${trackhash + (use_legacy ? '/legacy' : '')}?filepath=${encodeURIComponent(
         filepath
@@ -201,6 +316,10 @@ export const usePlayer = defineStore('player', () => {
         audio.muted = new_value
     }
 
+    function syncAudioProcessing() {
+        audioSource.syncAudioProcessing()
+    }
+
     const audio_onerror = (err: Event | string) => {
         if (typeof err != 'string') {
             err.stopImmediatePropagation()
@@ -223,9 +342,6 @@ export const usePlayer = defineStore('player', () => {
         //     }, 3000)
         //     return
         // }
-
-        // TODO: move this to a queue action
-        // queue.setPlaying(false)
     }
 
     const handlePlayErrors = (e: Event | string) => {
@@ -282,6 +398,13 @@ export const usePlayer = defineStore('player', () => {
     const onAudioEnded = () => {
         const { submitData } = tracker
         submitData()
+
+        if (!settings.autoplay) {
+            clearNextAudioData()
+            queue.setPlaying(false)
+            audio.currentTime = currentAudioData.silence.starting_file / 1000
+            return
+        }
 
         if (settings.repeat == 'none') {
             queue.playPause()
@@ -398,6 +521,11 @@ export const usePlayer = defineStore('player', () => {
     }
 
     const initLoadingNextTrackAudio = () => {
+        if (!settings.autoplay) {
+            clearNextAudioData()
+            return
+        }
+
         const { currentindex } = queue
         const { length } = tracklist
         const { repeat } = settings
@@ -516,6 +644,7 @@ export const usePlayer = defineStore('player', () => {
         audio,
         setMute,
         setVolume,
+        syncAudioProcessing,
         playCurrent: playCurrentTrack,
         clearNextAudio: clearNextAudioData,
         clearMovingNextTimeout,

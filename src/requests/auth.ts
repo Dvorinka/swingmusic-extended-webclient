@@ -2,7 +2,15 @@ import { paths } from '@/config'
 import useAxios from './useAxios'
 import { User, UserSimplified } from '@/interfaces'
 
-export async function getAllUsers<T extends boolean>(simple: T = true as T) {
+export interface BootstrapStatusResponse {
+    required: boolean
+    has_users: boolean
+    user_count: number
+    owner_exists: boolean
+    owner_username: string | null
+}
+
+export async function getAllUsers<T extends boolean>(simple: T = true as T): Promise<{ users: T extends true ? UserSimplified[] : User[]; settings: { [key: string]: unknown } }> {
     interface Response {
         users: T extends true ? UserSimplified[] : User[]
         settings: { [key: string]: any }
@@ -20,7 +28,7 @@ export async function getAllUsers<T extends boolean>(simple: T = true as T) {
         const res = await logoutUser()
 
         if (res.status === 200) {
-            return await getAllUsers()
+            return await getAllUsers(simple)
         }
     }
 
@@ -40,6 +48,57 @@ export async function loginUser(username: string, password: string) {
     })
 
     return res
+}
+
+export async function getBootstrapStatus() {
+    const setupRes = await useAxios({
+        url: paths.api.setup.status,
+        method: 'GET',
+    })
+
+    if (setupRes.status === 200) {
+        return setupRes
+    }
+
+    return await useAxios({
+        url: paths.api.auth.bootstrapStatus,
+        method: 'GET',
+    })
+}
+
+export async function bootstrapOwner(username: string, password: string, rootDirs: string[] = []) {
+    const setupRes = await useAxios({
+        url: paths.api.setup.bootstrap,
+        props: {
+            username,
+            password,
+            root_dirs: rootDirs,
+        },
+    })
+
+    if (setupRes.status === 200) {
+        return setupRes
+    }
+
+    return await useAxios({
+        url: paths.api.auth.bootstrapOwner,
+        props: {
+            username,
+            password,
+            root_dirs: rootDirs,
+        },
+    })
+}
+
+export async function acceptInvite(token: string, username: string, password: string) {
+    return await useAxios({
+        url: paths.api.auth.inviteAccept,
+        props: {
+            token,
+            username,
+            password,
+        },
+    })
 }
 
 export async function logoutUser() {

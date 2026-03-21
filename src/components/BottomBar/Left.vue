@@ -32,7 +32,7 @@
                 <span class="ellip">
                     {{ queue.currenttrack?.title || 'Hello there' }}
                 </span>
-                <ExplicitIcon class="explicit-icon" v-if="queue.currenttrack?.explicit" />
+                <ExplicitIcon v-if="queue.currenttrack?.explicit" class="explicit-icon" />
                 <MasterFlag :bitrate="queue.currenttrack?.bitrate || 0" />
             </div>
             <ArtistName

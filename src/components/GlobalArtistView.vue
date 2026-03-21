@@ -1,829 +1,963 @@
 <template>
-  <div class="global-artist-view">
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <Loader />
-      <p>Loading artist information...</p>
-    </div>
-    
-    <!-- Error State -->
-    <div v-else-if="error" class="error-state">
-      <AlertCircle />
-      <h3>Artist not found</h3>
-      <p>{{ error }}</p>
-      <button @click="goBack" class="back-button">Go Back</button>
-    </div>
-    
-    <!-- Artist Content -->
-    <div v-else-if="artist" class="artist-content">
-      <!-- Artist Header -->
-      <div class="artist-header">
-        <div class="artist-image-section">
-          <img 
-            :src="artist.image_url || '/icons/artist-placeholder.svg'"
-            :alt="artist.name"
-            class="artist-image"
-            @error="$event.target.src = '/icons/artist-placeholder.svg'"
-          />
-        </div>
-        
-        <div class="artist-info">
-          <h1 class="artist-name">{{ artist.name }}</h1>
-          <p class="followers">{{ formatFollowers(artist.followers) }} followers</p>
-          
-          <div class="artist-stats">
-            <span class="stat">{{ artist.popularity }}/100 popularity</span>
-            <span v-if="artist.genres?.length" class="genres">
-              {{ artist.genres.slice(0, 3).join(', ') }}
-            </span>
-          </div>
-          
-          <div class="artist-actions">
-            <button 
-              @click="downloadTopTracks" 
-              :disabled="downloadingTopTracks"
-              class="primary-button"
-            >
-              <Download v-if="!downloadingTopTracks" />
-              <Loader v-else class="small-loader" />
-              {{ downloadingTopTracks ? 'Downloading...' : 'Download Top 15 Tracks' }}
-            </button>
-            
-            <button 
-              @click="toggleFollow" 
-              :class="['secondary-button', { 'following': isFollowing }]"
-            >
-              <Heart :class="{ 'filled': isFollowing }" />
-              {{ isFollowing ? 'Following' : 'Follow' }}
-            </button>
-            
-            <button @click="shareArtist" class="secondary-button">
-              <Share2 />
-              Share
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Popular Tracks Section -->
-      <section v-if="artist.top_tracks?.length" class="top-tracks-section">
-        <div class="section-header">
-          <h2>Popular Tracks</h2>
-          <button 
-            @click="playAllTracks" 
-            class="play-all-button"
-          >
-            <Play />
-            Play All
-          </button>
-        </div>
-        
-        <TrackList 
-          :tracks="topTracksWithSource"
-          :show-download="true"
-          :show-popularity="true"
-          :show-track-number="true"
-          :source-indicator="true"
-          @download="downloadTrack"
-          @play="playTrack"
+  <div class="global-artist content-page">
+    <div v-if="loading" class="state-box">Loading artist...</div>
+    <div v-else-if="error" class="state-box error">{{ error }}</div>
+
+    <template v-else-if="artist">
+      <section class="hero rounded-lg">
+        <img
+          class="hero-image"
+          :src="artist.image_url || '/icons/artist-placeholder.svg'"
+          :alt="artist.name"
+          @error="onImageError"
         />
-      </section>
-      
-      <!-- Discography Section -->
-      <section v-if="artist.albums?.length" class="discography-section">
-        <div class="section-header">
-          <h2>Discography</h2>
-          <select v-model="albumFilter" @change="filterAlbums" class="album-filter">
-            <option value="all">All Albums</option>
-            <option value="album">Albums</option>
-            <option value="single">Singles</option>
-            <option value="compilation">Compilations</option>
-          </select>
+        <div class="hero-copy">
+          <p class="eyebrow">Global Artist</p>
+          <h1>{{ artist.name }}</h1>
+          <p class="meta">
+            {{ formatFollowers(artist.followers) }} followers
+            <span v-if="artist.popularity">• {{ artist.popularity }}/100 popularity</span>
+          </p>
+          <p v-if="artist.genres?.length" class="genres">{{ artist.genres.slice(0, 4).join(', ') }}</p>
+
+          <div class="hero-actions">
+            <button class="primary" :disabled="batchDownloading" @click="downloadMissingTopTracks">
+              {{ batchDownloading ? 'Queueing...' : 'Download Missing Top Tracks' }}
+            </button>
+            <button class="ghost" @click="openSpotifyArtist">Open in Spotify</button>
+          </div>
         </div>
-        
-        <div class="albums-grid">
-          <div 
-            v-for="album in filteredAlbums" 
-            :key="album.spotify_id"
-            class="album-card"
-            @click="viewAlbum(album)"
-          >
-            <div class="album-cover">
-              <img 
-                :src="album.image_url || '/icons/album-placeholder.svg'"
-                :alt="album.title"
-                @error="$event.target.src = '/icons/album-placeholder.svg'"
-              />
-              <div class="album-overlay">
-                <button class="play-button" @click.stop="playAlbum(album)">
-                  <Play />
-                </button>
-                <button 
-                  class="download-overlay-button"
-                  @click.stop="downloadAlbum(album)"
-                >
-                  <Download />
-                </button>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Top 15 Tracks</h2>
+        </div>
+        <div class="track-list">
+          <article v-for="(track, index) in topTracks" :key="track.spotify_id || `${track.title}-${index}`" :class="['track-row', { missing: !isAvailable(track) }]">
+            <div class="track-left">
+              <span class="index">{{ index + 1 }}</span>
+              <div>
+                <div class="title">{{ track.title || 'Unknown title' }}</div>
+                <div class="sub">
+                  {{ track.artist || artist.name }}
+                  <span v-if="track.play_count">• {{ formatPlayCount(track.play_count) }}</span>
+                </div>
               </div>
             </div>
-            <div class="album-info">
-              <h3 class="album-title">{{ album.title }}</h3>
-              <p class="album-year">{{ album.release_date?.split('-')[0] }}</p>
-              <p class="album-type">{{ album.data?.album_type || 'Album' }} • {{ album.data?.total_tracks || 0 }} tracks</p>
+            <div class="track-right">
+              <span class="state" :class="`state-${trackState(track)}`">{{ trackState(track) }}</span>
+              <span v-if="track.quality_badge" class="badge" :class="`badge-${track.quality_badge.color}`">
+                {{ track.quality_badge.label }}
+              </span>
+              <button class="ghost" :disabled="isTrackBusy(track)" @click="handleTrackAction(track)">
+                {{ actionLabel(track) }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="artist.this_is_artist?.length" class="section">
+        <div class="section-head">
+          <h2>This Is {{ artist.name }}</h2>
+        </div>
+        <div class="track-list compact">
+          <article
+            v-for="(track, index) in artist.this_is_artist.slice(0, 20)"
+            :key="`this-is-${track.spotify_id || index}`"
+            :class="['track-row', { missing: !isAvailable(track) }]"
+          >
+            <div class="track-left">
+              <span class="index">{{ index + 1 }}</span>
+              <div>
+                <div class="title">{{ track.title || 'Unknown title' }}</div>
+                <div class="sub">
+                  {{ track.artist || artist.name }}
+                  <span v-if="track.play_count">• {{ formatPlayCount(track.play_count) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="track-right">
+              <span class="state" :class="`state-${trackState(track)}`">{{ trackState(track) }}</span>
+              <button class="ghost" :disabled="isTrackBusy(track)" @click="handleTrackAction(track)">
+                {{ actionLabel(track) }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="artist.artist_radio?.length" class="section">
+        <div class="section-head">
+          <h2>Artist Radio</h2>
+        </div>
+        <div class="track-list compact">
+          <article
+            v-for="(track, index) in artist.artist_radio.slice(0, 24)"
+            :key="`radio-${track.spotify_id || index}`"
+            :class="['track-row', { missing: !isAvailable(track) }]"
+          >
+            <div class="track-left">
+              <span class="index">{{ index + 1 }}</span>
+              <div>
+                <div class="title">{{ track.title || 'Unknown title' }}</div>
+                <div class="sub">
+                  {{ track.artist || 'Unknown artist' }}
+                  <span v-if="track.play_count">• {{ formatPlayCount(track.play_count) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="track-right">
+              <span class="state" :class="`state-${trackState(track)}`">{{ trackState(track) }}</span>
+              <button class="ghost" :disabled="isTrackBusy(track)" @click="handleTrackAction(track)">
+                {{ actionLabel(track) }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="artist.discography_sections" class="section">
+        <div class="section-head">
+          <h2>Discography</h2>
+        </div>
+        <div class="album-groups">
+          <div v-for="group in discographyGroups" v-show="group.items.length" :key="group.key" class="album-group">
+            <h3>{{ group.label }}</h3>
+            <div class="album-grid">
+              <article
+                v-for="album in group.items"
+                :key="album.spotify_id"
+                class="album-card"
+              >
+                <button class="album-open" @click="openAlbum(album.spotify_id)">
+                  <img :src="album.image_url || '/icons/album-placeholder.svg'" :alt="album.title" @error="onImageError" />
+                  <div class="album-title">{{ album.title }}</div>
+                  <div class="album-sub">{{ album.release_date || 'Unknown year' }}</div>
+                </button>
+                <div class="album-actions">
+                  <span class="state" :class="`state-${albumState(album)}`">{{ albumState(album) }}</span>
+                  <button class="ghost" :disabled="isAlbumBusy(album)" @click="queueAlbumDownload(album)">
+                    {{ isAlbumBusy(album) ? 'Queueing...' : albumActionLabel(album) }}
+                  </button>
+                </div>
+              </article>
             </div>
           </div>
         </div>
       </section>
-      
-      <!-- Related Artists Section -->
-      <section v-if="artist.related_artists?.length" class="related-artists-section">
-        <h2>Related Artists</h2>
-        <div class="related-artists-grid">
-          <div 
-            v-for="relatedArtist in artist.related_artists" 
-            :key="relatedArtist.id"
-            class="related-artist-card"
-            @click="viewArtist(relatedArtist)"
+
+      <section v-if="artist.related_artists?.length" class="section">
+        <div class="section-head">
+          <h2>Related Artists</h2>
+        </div>
+        <div class="related-grid">
+          <button
+            v-for="related in artist.related_artists"
+            :key="related.id"
+            class="related-card"
+            @click="openArtist(related.id)"
           >
-            <img 
-              :src="relatedArtist.image_url || '/icons/artist-placeholder.svg'"
-              :alt="relatedArtist.name"
-              class="related-artist-image"
-              @error="$event.target.src = '/icons/artist-placeholder.svg'"
-            />
-            <h4 class="related-artist-name">{{ relatedArtist.name }}</h4>
-            <p class="related-artist-popularity">{{ relatedArtist.popularity }}/100</p>
-          </div>
+            <img :src="related.image_url || '/icons/artist-placeholder.svg'" :alt="related.name" @error="onImageError" />
+            <div class="related-name">{{ related.name }}</div>
+            <div class="related-sub">{{ related.popularity || 0 }}/100 popularity</div>
+          </button>
         </div>
       </section>
+    </template>
+
+    <div v-if="importModal.visible" class="import-modal-overlay" @click.self="closeImportModal">
+      <div class="import-modal rounded-lg">
+        <h3>Import Existing Track?</h3>
+        <p>
+          This song already exists for another user on this server. Import it instantly, or queue a new download.
+        </p>
+        <ul>
+          <li v-for="candidate in importModal.candidates" :key="`${candidate.user_id}-${candidate.file_id}`">
+            {{ candidate.username }}
+          </li>
+        </ul>
+        <div class="modal-actions">
+          <button class="primary" :disabled="importModal.busy" @click="importExistingTrack">Import Existing</button>
+          <button class="ghost" :disabled="importModal.busy || !importModal.track" @click="downloadFromModal">Download New</button>
+          <button class="ghost" :disabled="importModal.busy" @click="closeImportModal">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted, watch } from 'vue'
+<script setup lang="ts">
+import axios from 'axios'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
-import { usePlayer } from '@/composables/usePlayer'
-import { useAuthStore } from '@/stores/auth'
-import { 
-  Loader, 
-  AlertCircle, 
-  Download, 
-  Heart, 
-  Share2, 
-  Play 
-} from 'lucide-vue-next'
-import TrackList from '@/components/shared/TrackList.vue'
 
-export default {
-  name: 'GlobalArtistView',
-  components: {
-    Loader,
-    AlertCircle,
-    Download,
-    Heart,
-    Share2,
-    Play,
-    TrackList
-  },
-  
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const { showToast } = useToast()
-    const { playTrack: playTrackInPlayer, playTracks: playTracksInPlayer } = usePlayer()
-    const authStore = useAuthStore()
-    
-    // State
-    const artist = ref(null)
-    const loading = ref(true)
-    const error = ref('')
-    const isFollowing = ref(false)
-    const downloadingTopTracks = ref(false)
-    const albumFilter = ref('all')
-    
-    // Computed
-    const topTracksWithSource = computed(() => {
-      return (artist.value?.top_tracks || []).map(track => ({
-        ...track,
-        source: 'global',
-        id: track.spotify_id
-      }))
-    })
-    
-    const filteredAlbums = computed(() => {
-      if (!artist.value?.albums) return []
-      
-      if (albumFilter.value === 'all') {
-        return artist.value.albums
-      }
-      
-      return artist.value.albums.filter(album => 
-        album.data?.album_type === albumFilter.value
-      )
-    })
-    
-    // Methods
-    const fetchArtistInfo = async () => {
-      const artistId = route.params.id
-      if (!artistId) {
-        error.value = 'No artist ID provided'
-        loading.value = false
-        return
-      }
-      
-      loading.value = true
-      error.value = ''
-      
-      try {
-        const params = new URLSearchParams({
-          user_id: authStore.user?.id || ''
-        })
-        
-        const response = await fetch(`/api/search/artist/${artistId}?${params}`)
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            error.value = 'Artist not found'
-          } else {
-            throw new Error('Failed to fetch artist information')
-          }
-          return
-        }
-        
-        const data = await response.json()
-        artist.value = data
-        
-        // Check if user is following this artist (would need to implement)
-        isFollowing.value = false // TODO: Implement follow status check
-        
-      } catch (err) {
-        console.error('Error fetching artist:', err)
-        error.value = 'Failed to load artist information'
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    const downloadTrack = async (track) => {
-      try {
-        const response = await fetch('/api/spotify/download', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: `https://open.spotify.com/track/${track.spotify_id}`,
-            quality: 'flac'
-          })
-        })
-        
-        if (!response.ok) throw new Error('Download failed')
-        
-        showToast(`Added to download queue: ${track.title}`, 'success')
-      } catch (error) {
-        console.error('Download error:', error)
-        showToast('Failed to add to download queue', 'error')
-      }
-    }
-    
-    const downloadTopTracks = async () => {
-      if (!artist.value?.top_tracks?.length) return
-      
-      downloadingTopTracks.value = true
-      
-      try {
-        const downloadPromises = artist.value.top_tracks.map(track => 
-          fetch('/api/spotify/download', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              url: `https://open.spotify.com/track/${track.spotify_id}`,
-              quality: 'flac'
-            })
-          })
-        )
-        
-        const results = await Promise.allSettled(downloadPromises)
-        const successful = results.filter(r => r.status === 'fulfilled').length
-        const failed = results.filter(r => r.status === 'rejected').length
-        
-        if (successful > 0) {
-          showToast(`Added ${successful} tracks to download queue`, 'success')
-        }
-        
-        if (failed > 0) {
-          showToast(`${failed} tracks failed to add to queue`, 'error')
-        }
-        
-      } catch (error) {
-        console.error('Batch download error:', error)
-        showToast('Failed to add tracks to download queue', 'error')
-      } finally {
-        downloadingTopTracks.value = false
-      }
-    }
-    
-    const downloadAlbum = async (album) => {
-      try {
-        const response = await fetch('/api/spotify/download', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: `https://open.spotify.com/album/${album.spotify_id}`,
-            quality: 'flac'
-          })
-        })
-        
-        if (!response.ok) throw new Error('Download failed')
-        
-        showToast(`Added to download queue: ${album.title}`, 'success')
-      } catch (error) {
-        console.error('Download error:', error)
-        showToast('Failed to add to download queue', 'error')
-      }
-    }
-    
-    const playTrack = (track) => {
-      showToast('Download track to play it', 'info')
-    }
-    
-    const playAllTracks = () => {
-      showToast('Download tracks to play them', 'info')
-    }
-    
-    const playAlbum = (album) => {
-      showToast('Download album to play it', 'info')
-    }
-    
-    const toggleFollow = () => {
-      isFollowing.value = !isFollowing.value
-      showToast(
-        isFollowing.value ? 'Now following this artist' : 'Unfollowed this artist',
-        'success'
-      )
-      // TODO: Implement follow/unfollow API call
-    }
-    
-    const shareArtist = () => {
-      const url = window.location.href
-      if (navigator.share) {
-        navigator.share({
-          title: `${artist.value?.name} on SwingMusic`,
-          text: `Check out ${artist.value?.name} on SwingMusic`,
-          url: url
-        })
-      } else {
-        navigator.clipboard.writeText(url)
-        showToast('Artist link copied to clipboard', 'success')
-      }
-    }
-    
-    const viewAlbum = (album) => {
-      router.push(`/global/album/${album.spotify_id}`)
-    }
-    
-    const viewArtist = (relatedArtist) => {
-      router.push(`/global/artist/${relatedArtist.id}`)
-    }
-    
-    const goBack = () => {
-      router.go(-1)
-    }
-    
-    const filterAlbums = () => {
-      // Triggered by select change, computed property handles filtering
-    }
-    
-    const formatFollowers = (followers) => {
-      if (!followers) return '0'
-      if (followers >= 1000000) return `${(followers / 1000000).toFixed(1)}M`
-      if (followers >= 1000) return `${(followers / 1000).toFixed(1)}K`
-      return followers.toString()
-    }
-    
-    // Lifecycle
-    onMounted(() => {
-      fetchArtistInfo()
-    })
-    
-    // Watch for route changes
-    watch(() => route.params.id, () => {
-      fetchArtistInfo()
-    })
-    
-    return {
-      // State
-      artist,
-      loading,
-      error,
-      isFollowing,
-      downloadingTopTracks,
-      albumFilter,
-      
-      // Computed
-      topTracksWithSource,
-      filteredAlbums,
-      
-      // Methods
-      downloadTrack,
-      downloadTopTracks,
-      downloadAlbum,
-      playTrack,
-      playAllTracks,
-      playAlbum,
-      toggleFollow,
-      shareArtist,
-      viewAlbum,
-      viewArtist,
-      goBack,
-      filterAlbums,
-      formatFollowers
-    }
+import { NotifType, Notification } from '@/stores/notification'
+
+interface QualityBadge {
+  label: string
+  color: string
+}
+
+interface DownloadAction {
+  type: string
+  label: string
+  enabled: boolean
+}
+
+interface TrackAvailability {
+  state: string
+  candidate_count?: number
+  download_action?: DownloadAction
+  quality_badge?: QualityBadge
+}
+
+interface CatalogTrack {
+  spotify_id?: string
+  trackhash?: string
+  title?: string
+  artist?: string
+  album?: string
+  play_count?: number
+  last_played?: number
+  availability?: TrackAvailability
+  download_action?: DownloadAction
+  quality_badge?: QualityBadge
+}
+
+interface CatalogAlbum {
+  spotify_id: string
+  title: string
+  image_url?: string
+  release_date?: string
+  availability?: {
+    state?: string
+    download_action?: DownloadAction
+    available_tracks?: number
   }
 }
+
+interface RelatedArtist {
+  id: string
+  name: string
+  image_url?: string
+  popularity?: number
+}
+
+interface ArtistPayload {
+  spotify_id: string
+  name: string
+  image_url?: string
+  followers?: number
+  popularity?: number
+  genres?: string[]
+  top_tracks: CatalogTrack[]
+  this_is_artist: CatalogTrack[]
+  artist_radio: CatalogTrack[]
+  related_artists: RelatedArtist[]
+  discography_sections?: {
+    albums: CatalogAlbum[]
+    singles: CatalogAlbum[]
+    compilations: CatalogAlbum[]
+    other: CatalogAlbum[]
+  }
+}
+
+interface ImportCandidate {
+  user_id: number
+  username: string
+  file_id: number | null
+}
+
+const route = useRoute()
+const router = useRouter()
+
+const loading = ref(true)
+const error = ref('')
+const artist = ref<ArtistPayload | null>(null)
+const batchDownloading = ref(false)
+const busyTrackKeys = reactive<Record<string, boolean>>({})
+const busyAlbumKeys = reactive<Record<string, boolean>>({})
+
+const importModal = reactive<{
+  visible: boolean
+  busy: boolean
+  track: CatalogTrack | null
+  candidates: ImportCandidate[]
+}>({
+  visible: false,
+  busy: false,
+  track: null,
+  candidates: [],
+})
+
+const topTracks = computed(() => (artist.value?.top_tracks || []).slice(0, 15))
+
+const discographyGroups = computed(() => {
+  const sections = artist.value?.discography_sections
+  if (!sections) {
+    return []
+  }
+
+  return [
+    { key: 'albums', label: 'Albums', items: sections.albums || [] },
+    { key: 'singles', label: 'Singles & EPs', items: sections.singles || [] },
+    { key: 'compilations', label: 'Compilations', items: sections.compilations || [] },
+    { key: 'other', label: 'Other Releases', items: sections.other || [] },
+  ]
+})
+
+function notify(message: string, type: NotifType) {
+  new Notification(message, type)
+}
+
+function onImageError(event: Event) {
+  const target = event.target as HTMLImageElement | null
+  if (target) {
+    target.src = '/icons/artist-placeholder.svg'
+  }
+}
+
+function trackKey(track: CatalogTrack) {
+  return track.trackhash || track.spotify_id || `${track.title || 'track'}-${track.artist || ''}`
+}
+
+function isTrackBusy(track: CatalogTrack) {
+  return !!busyTrackKeys[trackKey(track)]
+}
+
+function trackState(track: CatalogTrack) {
+  return track.availability?.state || 'missing'
+}
+
+function isAvailable(track: CatalogTrack) {
+  return trackState(track) === 'available'
+}
+
+function actionLabel(track: CatalogTrack) {
+  if (isTrackBusy(track)) {
+    return 'Working...'
+  }
+
+  const action = track.download_action || track.availability?.download_action
+  if (action?.label) {
+    return action.label
+  }
+
+  return isAvailable(track) ? 'Available' : 'Download'
+}
+
+function formatFollowers(value?: number) {
+  const followers = Number(value || 0)
+  if (followers >= 1_000_000) {
+    return `${(followers / 1_000_000).toFixed(1)}M`
+  }
+  if (followers >= 1_000) {
+    return `${(followers / 1_000).toFixed(1)}K`
+  }
+  return String(followers)
+}
+
+function formatPlayCount(value?: number) {
+  const plays = Number(value || 0)
+  if (plays >= 1_000_000) {
+    return `${(plays / 1_000_000).toFixed(1)}M plays`
+  }
+  if (plays >= 1_000) {
+    return `${(plays / 1_000).toFixed(1)}K plays`
+  }
+  return `${plays} play${plays === 1 ? '' : 's'}`
+}
+
+function spotifyTrackUrl(track: CatalogTrack) {
+  if (!track.spotify_id) {
+    return ''
+  }
+  return `https://open.spotify.com/track/${track.spotify_id}`
+}
+
+function spotifyArtistUrl() {
+  return artist.value?.spotify_id ? `https://open.spotify.com/artist/${artist.value.spotify_id}` : ''
+}
+
+async function fetchArtist() {
+  const artistId = String(route.params.id || '').trim()
+  if (!artistId) {
+    error.value = 'Artist ID is missing.'
+    loading.value = false
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    const { data } = await axios.get(`/api/catalog/artist/${artistId}`)
+    artist.value = data
+  } catch (err: any) {
+    error.value = err?.response?.data?.error || 'Failed to load artist information.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function queueTrackDownload(track: CatalogTrack) {
+  if (!track.spotify_id) {
+    notify('Missing Spotify track ID.', NotifType.Error)
+    return false
+  }
+
+  const key = trackKey(track)
+  busyTrackKeys[key] = true
+
+  try {
+    await axios.post('/api/downloads/jobs', {
+      source_url: spotifyTrackUrl(track),
+      source: 'spotify',
+      quality: 'lossless',
+      codec: 'flac',
+      trackhash: track.trackhash,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      item_type: 'track',
+      payload: {
+        spotify_id: track.spotify_id,
+        item_type: 'track',
+      },
+    })
+
+    notify(`Queued: ${track.title || 'Track'}`, NotifType.Success)
+    return true
+  } catch (err: any) {
+    const message = err?.response?.data?.error || 'Failed to queue download.'
+    notify(message, NotifType.Error)
+    return false
+  } finally {
+    busyTrackKeys[key] = false
+  }
+}
+
+function albumKey(album: CatalogAlbum) {
+  return album.spotify_id || album.title || 'album'
+}
+
+function isAlbumBusy(album: CatalogAlbum) {
+  return !!busyAlbumKeys[albumKey(album)]
+}
+
+function albumState(album: CatalogAlbum) {
+  return album.availability?.state || 'missing'
+}
+
+function albumActionLabel(album: CatalogAlbum) {
+  return album.availability?.download_action?.label || 'Download Album'
+}
+
+async function queueAlbumDownload(albumEntry: CatalogAlbum) {
+  if (!albumEntry.spotify_id) {
+    notify('Missing Spotify album ID.', NotifType.Error)
+    return
+  }
+
+  const key = albumKey(albumEntry)
+  busyAlbumKeys[key] = true
+  try {
+    await axios.post('/api/downloads/jobs', {
+      source_url: `https://open.spotify.com/album/${albumEntry.spotify_id}`,
+      source: 'spotify',
+      quality: 'lossless',
+      codec: 'flac',
+      title: albumEntry.title,
+      artist: artist.value?.name,
+      album: albumEntry.title,
+      item_type: 'album',
+      payload: {
+        spotify_id: albumEntry.spotify_id,
+        item_type: 'album',
+      },
+    })
+    notify(`Queued album: ${albumEntry.title || 'Album'}`, NotifType.Success)
+  } catch (err: any) {
+    const message = err?.response?.data?.error || 'Failed to queue album download.'
+    notify(message, NotifType.Error)
+  } finally {
+    busyAlbumKeys[key] = false
+  }
+}
+
+async function openImportModal(track: CatalogTrack) {
+  if (!track.trackhash) {
+    await queueTrackDownload(track)
+    await fetchArtist()
+    return
+  }
+
+  const key = trackKey(track)
+  busyTrackKeys[key] = true
+  try {
+    const { data } = await axios.post('/api/downloads/imports/candidates', {
+      trackhash: track.trackhash,
+    })
+
+    if (!data?.candidates?.length) {
+      await queueTrackDownload(track)
+      await fetchArtist()
+      return
+    }
+
+    importModal.visible = true
+    importModal.track = track
+    importModal.candidates = data.candidates
+  } catch (err: any) {
+    const message = err?.response?.data?.error || 'Failed to fetch import candidates.'
+    notify(message, NotifType.Error)
+  } finally {
+    busyTrackKeys[key] = false
+  }
+}
+
+async function handleTrackAction(track: CatalogTrack) {
+  const state = trackState(track)
+  const actionType = (track.download_action || track.availability?.download_action)?.type || 'download'
+
+  if (state === 'available') {
+    const url = spotifyTrackUrl(track)
+    if (url) {
+      window.open(url, '_blank')
+    }
+    return
+  }
+
+  if (actionType === 'import_or_download') {
+    await openImportModal(track)
+    return
+  }
+
+  if (actionType === 'queued') {
+    notify('Track is already queued.', NotifType.Info)
+    return
+  }
+
+  const queued = await queueTrackDownload(track)
+  if (queued) {
+    await fetchArtist()
+  }
+}
+
+async function downloadMissingTopTracks() {
+  const missing = topTracks.value.filter(track => trackState(track) !== 'available')
+  if (!missing.length) {
+    notify('All top tracks are already available.', NotifType.Info)
+    return
+  }
+
+  batchDownloading.value = true
+  try {
+    let queued = 0
+    for (const track of missing) {
+      const ok = await queueTrackDownload(track)
+      if (ok) {
+        queued += 1
+      }
+    }
+
+    notify(`Queued ${queued} track(s).`, NotifType.Success)
+    await fetchArtist()
+  } finally {
+    batchDownloading.value = false
+  }
+}
+
+async function importExistingTrack() {
+  if (!importModal.track?.trackhash) {
+    return
+  }
+
+  importModal.busy = true
+  try {
+    const sourceUserId = importModal.candidates[0]?.user_id
+    await axios.post('/api/downloads/imports/confirm', {
+      trackhash: importModal.track.trackhash,
+      source_userid: sourceUserId,
+    })
+
+    notify('Track imported into your library.', NotifType.Success)
+    closeImportModal()
+    await fetchArtist()
+  } catch (err: any) {
+    const message = err?.response?.data?.error || 'Failed to import track.'
+    notify(message, NotifType.Error)
+  } finally {
+    importModal.busy = false
+  }
+}
+
+async function downloadFromModal() {
+  if (!importModal.track) {
+    return
+  }
+
+  const track = importModal.track
+  closeImportModal()
+  const queued = await queueTrackDownload(track)
+  if (queued) {
+    await fetchArtist()
+  }
+}
+
+function closeImportModal() {
+  importModal.visible = false
+  importModal.track = null
+  importModal.candidates = []
+  importModal.busy = false
+}
+
+function openAlbum(albumId: string) {
+  router.push({ name: 'global-album', params: { id: albumId } })
+}
+
+function openArtist(artistId: string) {
+  router.push({ name: 'global-artist', params: { id: artistId } })
+}
+
+function openSpotifyArtist() {
+  const url = spotifyArtistUrl()
+  if (url) {
+    window.open(url, '_blank')
+  }
+}
+
+watch(
+  () => route.params.id,
+  () => {
+    fetchArtist()
+  }
+)
+
+onMounted(() => {
+  fetchArtist()
+})
 </script>
 
 <style scoped>
-.global-artist-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.loading-state,
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.global-artist {
+  display: grid;
   gap: 1rem;
-  padding: 4rem 2rem;
-  color: var(--text-secondary);
-  text-align: center;
+  padding: 1rem;
 }
 
-.error-state h3 {
-  color: var(--text-primary);
-  margin: 0;
+.state-box {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.back-button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.state-box.error {
+  background: rgba(255, 120, 120, 0.16);
+  color: #ffd3d3;
 }
 
-.back-button:hover {
-  background: var(--accent-hover);
+.hero {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(132deg, rgba(15, 20, 33, 0.95), rgba(8, 10, 16, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.artist-header {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 3rem;
-  align-items: flex-start;
-}
-
-.artist-image-section {
-  flex-shrink: 0;
-}
-
-.artist-image {
-  width: 240px;
-  height: 240px;
-  border-radius: 0.5rem;
+.hero-image {
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: cover;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 0.7rem;
 }
 
-.artist-info {
-  flex: 1;
-  min-width: 0;
+.hero-copy h1 {
+  margin: 0.35rem 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.6rem);
 }
 
-.artist-name {
-  font-size: 3rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-  line-height: 1.1;
+.eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.followers {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  margin: 0 0 1rem 0;
-}
-
-.artist-stats {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.stat {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
+.meta,
 .genres {
-  color: var(--accent);
-  font-style: italic;
+  margin: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.74);
 }
 
-.artist-actions {
+.hero-actions {
+  margin-top: 0.85rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
-.primary-button,
-.secondary-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 2rem;
-  font-weight: 600;
+button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  font-size: 1rem;
 }
 
-.primary-button {
-  background: var(--accent);
-  color: white;
+button.primary {
+  background: linear-gradient(136deg, #64e1b5, #4e98f2);
+  border-color: rgba(0, 0, 0, 0.25);
+  color: #061018;
+  font-weight: 700;
 }
 
-.primary-button:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.primary-button:disabled {
-  opacity: 0.6;
+button:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.secondary-button {
-  background: var(--surface);
-  color: var(--text-primary);
-  border: 2px solid var(--border);
+.section {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.secondary-button:hover {
-  background: var(--hover);
-  border-color: var(--accent);
+.section-head h2 {
+  margin: 0 0 0.75rem;
 }
 
-.secondary-button.following {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
+.track-list {
+  display: grid;
+  gap: 0.55rem;
 }
 
-.small-loader {
-  width: 16px;
-  height: 16px;
+.track-list.compact .track-row {
+  padding: 0.55rem 0.65rem;
 }
 
-.top-tracks-section,
-.discography-section,
-.related-artists-section {
-  margin-bottom: 3rem;
-}
-
-.section-header {
+.track-row {
   display: flex;
   justify-content: space-between;
+  gap: 0.8rem;
   align-items: center;
-  margin-bottom: 1.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.24);
 }
 
-.section-header h2 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 1.5rem;
+.track-row.missing {
+  opacity: 0.8;
+  filter: grayscale(0.35);
 }
 
-.play-all-button {
+.track-left {
+  display: flex;
+  gap: 0.7rem;
+  min-width: 0;
+  align-items: center;
+}
+
+.index {
+  width: 1.25rem;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.82rem;
+}
+
+.title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.84rem;
+}
+
+.track-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 600;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.play-all-button:hover {
-  background: var(--accent-hover);
+.state,
+.badge {
+  font-size: 0.72rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  text-transform: capitalize;
 }
 
-.album-filter {
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--border);
-  border-radius: 0.5rem;
-  background: var(--background);
-  color: var(--text-primary);
-  font-size: 0.9rem;
+.state-available {
+  background: rgba(84, 219, 160, 0.22);
+  color: #d7ffef;
 }
 
-.albums-grid {
+.state-missing {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.state-queued {
+  background: rgba(108, 170, 255, 0.22);
+  color: #d9e9ff;
+}
+
+.state-failed {
+  background: rgba(255, 119, 119, 0.2);
+  color: #ffd6d6;
+}
+
+.badge-green {
+  background: rgba(84, 219, 160, 0.2);
+  color: #d9ffef;
+}
+
+.badge-blue {
+  background: rgba(109, 170, 255, 0.22);
+  color: #ddecff;
+}
+
+.badge-orange {
+  background: rgba(255, 170, 92, 0.22);
+  color: #ffe8cf;
+}
+
+.badge-gray {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.album-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+.album-group h3 {
+  margin: 0 0 0.55rem;
+}
+
+.album-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+}
+
+.album-card,
+.related-card {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 0.65rem;
+  padding: 0.45rem;
+  text-align: left;
 }
 
 .album-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.album-card:hover {
-  transform: translateY(-4px);
-}
-
-.album-cover {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.album-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.album-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  opacity: 0;
-  transition: opacity 0.2s;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
-.album-card:hover .album-overlay {
-  opacity: 1;
-}
-
-.play-button,
-.download-overlay-button {
-  background: var(--accent);
+.album-open {
   border: none;
-  color: white;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  text-align: left;
 }
 
-.play-button:hover,
-.download-overlay-button:hover {
-  background: var(--accent-hover);
-}
-
-.album-info {
-  text-align: center;
-}
-
-.album-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.album-year {
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-}
-
-.album-type {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.related-artists-section h2 {
-  margin: 0 0 1.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-}
-
-.related-artists-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1.5rem;
-}
-
-.related-artist-card {
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.related-artist-card:hover {
-  transform: translateY(-2px);
-}
-
-.related-artist-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
+.album-card img,
+.related-card img {
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: cover;
-  margin-bottom: 0.75rem;
-  border: 3px solid var(--surface);
+  border-radius: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
-.related-artist-name {
+.album-title,
+.related-name {
   font-weight: 600;
-  margin: 0 0 0.25rem 0;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.88rem;
 }
 
-.related-artist-popularity {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+.album-sub,
+.related-sub {
+  margin-top: 0.15rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.76rem;
+}
+
+.album-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.related-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
+}
+
+.import-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+}
+
+.import-modal {
+  width: min(92vw, 28rem);
+  padding: 1rem;
+  background: #111624;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.import-modal h3 {
+  margin: 0 0 0.35rem;
+}
+
+.import-modal p {
   margin: 0;
+  color: rgba(255, 255, 255, 0.78);
 }
 
-@media (max-width: 768px) {
-  .global-artist-view {
-    padding: 1rem;
+.import-modal ul {
+  margin: 0.7rem 0;
+  padding-left: 1.2rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
   }
-  
-  .artist-header {
-    flex-direction: column;
-    gap: 1.5rem;
-    text-align: center;
-  }
-  
-  .artist-image {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
-  }
-  
-  .artist-name {
-    font-size: 2rem;
-  }
-  
-  .artist-actions {
-    justify-content: center;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-  
-  .albums-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-  }
-  
-  .related-artists-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 1rem;
-  }
-  
-  .related-artist-image {
-    width: 100px;
-    height: 100px;
+
+  .hero-image {
+    max-width: 14rem;
   }
 }
 </style>

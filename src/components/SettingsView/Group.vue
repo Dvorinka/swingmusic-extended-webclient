@@ -8,9 +8,14 @@
                 :class="{
                     inactive: setting.inactive && setting.inactive(),
                     'is-list': setting.type === SettingType.root_dirs,
+                    'is-custom': setting.type === 'custom',
                 }"
             >
-                <div class="text" @click="setting.defaultAction ? setting.defaultAction() : setting.action()">
+                <div
+                    v-if="setting.type !== 'custom'"
+                    class="text"
+                    @click="setting.defaultAction ? setting.defaultAction() : setting.action && setting.action()"
+                >
                     <div class="title">
                         <span class="ellip">
                             {{ setting.title }}
@@ -21,7 +26,7 @@
                                 {{ setting.new ? 'new' : '' }}
                             </span>
                         </span>
-                        <button v-if="setting.type == SettingType.root_dirs" @click="setting.action">
+                        <button v-if="setting.type == SettingType.root_dirs" @click="setting.action && setting.action()">
                             <ReloadSvg height="1.5rem" /> <span>Rescan</span>
                         </button>
                     </div>
@@ -29,42 +34,44 @@
                         {{ setting.desc }}
                     </div>
                 </div>
-                <div class="options">
+                <div v-if="setting.type !== 'custom'" class="options">
                     <Switch
                         v-if="setting.type == SettingType.binary"
                         :state="setting.state && setting.state()"
-                        @click="setting.action()"
+                        @click="setting.action && setting.action()"
                     />
                     <Select
                         v-if="setting.type === SettingType.select"
                         :options="setting.options"
-                        :source="setting.state !== null ? setting.state : () => ''"
-                        :setter-fn="setting.action"
+                        :source="setting.state ? setting.state : () => ''"
+                        :setter-fn="setting.action || (() => {})"
                     />
                     <NumberInput
                         v-if="setting.type === SettingType.free_number_input"
                         :value="setting.state && setting.state()"
-                        :callback="setting.action"
+                        :callback="setting.action || (() => {})"
                     />
-                    <button v-if="setting.type === SettingType.button" @click="setting.action">
+                    <button v-if="setting.type === SettingType.button" @click="setting.action && setting.action()">
                         {{ setting.button_text && setting.button_text() }}
                     </button>
                     <LockedNumberInput
                         v-if="setting.type == SettingType.locked_number_input"
-                        :value="setting.state !== null ? setting.state() : 0"
+                        :value="setting.state ? setting.state() : 0"
                         :min="0"
                         :max="10"
                         :step="1"
                         :unit="'s'"
-                        :on-change="setting.action"
+                        :on-change="setting.action || (() => {})"
                     />
                 </div>
+
+                <component :is="setting.component" v-if="setting.type === 'custom' && setting.component" />
 
                 <!-- Custom components -->
                 <List
                     v-if="setting.type === SettingType.root_dirs"
                     icon="folder"
-                    :items="setting.state !== null ? setting.state() : []"
+                    :items="setting.state ? setting.state() : []"
                 />
                 <SeparatorsInput
                     v-if="setting.type === SettingType.separators_input && setting.action"
@@ -79,15 +86,15 @@
                     v-if="setting.type === SettingType.streaming_quality"
                     :items="(setting.options ?? [] as any)"
                     :current="(setting.state && setting.state() as any)"
-                    @item-clicked="setting.action"
                     :reverse="'hide'"
                     component_key="streaming_quality"
+                    @item-clicked="setting.action || (() => {})"
                 />
                 <BackupRestore v-if="setting.type === SettingType.backup" />
                 <SecretInput
                     v-if="setting.type === SettingType.secretinput"
                     :text="setting.state ? setting.state() : ''"
-                    @submit="setting.action"
+                    @submit="setting.action || (() => {})"
                 />
             </div>
         </div>
@@ -217,6 +224,12 @@ defineProps<{
     .setting-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
+    }
+
+    .setting-item.is-custom {
+        padding: 0 !important;
+        border-bottom: none !important;
+        display: block !important;
     }
 
     @include smallerPhones {

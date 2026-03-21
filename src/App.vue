@@ -1,4 +1,41 @@
 <template>
+    <header
+        v-if="isDesktopTauri"
+        class="desktop-title-bar"
+        @dblclick="toggleMaximizeWindow"
+    >
+        <div class="desktop-title-bar__brand">
+            <img
+                src="/logo-fill.light.svg"
+                alt="SwingMusic"
+                class="desktop-title-bar__logo"
+            />
+            <span class="desktop-title-bar__title">SwingMusic</span>
+        </div>
+        <div class="desktop-title-bar__controls">
+            <button
+                class="desktop-title-bar__btn"
+                aria-label="Minimize"
+                @click="minimizeWindow"
+            >
+                −
+            </button>
+            <button
+                class="desktop-title-bar__btn"
+                aria-label="Maximize"
+                @click="toggleMaximizeWindow"
+            >
+                □
+            </button>
+            <button
+                class="desktop-title-bar__btn desktop-title-bar__btn--close"
+                aria-label="Close"
+                @click="closeWindow"
+            >
+                ×
+            </button>
+        </div>
+    </header>
     <ContextMenu />
     <Modal />
     <Notification />
@@ -10,6 +47,7 @@
             NoSideBorders: settings.is_alt_layout || !xxl,
             extendWidth: settings.extend_width && settings.can_extend_width,
             is_alt_layout: settings.is_alt_layout,
+            desktop_tauri: isDesktopTauri,
         }"
         :style="{
             maxWidth: `${settings.is_default_layout ? (content_height > 1080 ? '2220px' : '1760px') : ''}`,
@@ -64,9 +102,11 @@ import RightSideBar from "@/components/RightSideBar/Main.vue";
 import { getAllSettings } from "@/requests/settings";
 import { getRootDirs } from "@/requests/settings/rootdirs";
 import { getLoggedInUser } from "./requests/auth";
+import { getSetupStatus } from "./requests/setup";
 // import BubbleManager from "./components/bubbles/BinManager.vue";
 
 const appcontent: Ref<HTMLLegendElement | null> = ref(null);
+const isDesktopTauri = ref(false);
 const auth = useAuth();
 const queue = useQueue();
 const modal = useModal();
@@ -117,6 +157,8 @@ function handleRootDirsPrompt() {
 }
 
 onMounted(async () => {
+    isDesktopTauri.value = Boolean((window as any).__TAURI__);
+
     const { width, height } = getContentSize();
     updateContentElemSize({ width, height });
 
@@ -125,6 +167,12 @@ onMounted(async () => {
     if (res.status == 200) {
         auth.setUser(res.data);
     } else {
+        return;
+    }
+
+    const setupRes = await getSetupStatus();
+    if (setupRes.status === 200 && setupRes.data?.required) {
+        modal.showLoginModal();
         return;
     }
 
@@ -142,6 +190,36 @@ onMounted(async () => {
             }
         });
 });
+
+async function minimizeWindow() {
+    if (!isDesktopTauri.value) return;
+    try {
+        const { appWindow } = await import("@tauri-apps/api/window");
+        await appWindow.minimize();
+    } catch {
+        // no-op: keep web shell responsive even if Tauri APIs are unavailable
+    }
+}
+
+async function toggleMaximizeWindow() {
+    if (!isDesktopTauri.value) return;
+    try {
+        const { appWindow } = await import("@tauri-apps/api/window");
+        await appWindow.toggleMaximize();
+    } catch {
+        // no-op: keep web shell responsive even if Tauri APIs are unavailable
+    }
+}
+
+async function closeWindow() {
+    if (!isDesktopTauri.value) return;
+    try {
+        const { appWindow } = await import("@tauri-apps/api/window");
+        await appWindow.close();
+    } catch {
+        // no-op: keep web shell responsive even if Tauri APIs are unavailable
+    }
+}
 </script>
 
 <script lang="ts">
@@ -171,6 +249,71 @@ export default defineComponent({
 
 <style lang="scss">
 @import "./assets/scss/mixins.scss";
+
+.desktop-title-bar {
+    position: sticky;
+    top: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 2rem;
+    padding: 0 0.35rem 0 0.6rem;
+    background: $body;
+    border-bottom: 1px solid $gray5;
+    user-select: none;
+    -webkit-app-region: drag;
+}
+
+.desktop-title-bar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.desktop-title-bar__logo {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.desktop-title-bar__title {
+    color: $gray1;
+    font-size: 0.73rem;
+    font-weight: 600;
+}
+
+.desktop-title-bar__controls {
+    display: flex;
+    gap: 0.2rem;
+    -webkit-app-region: no-drag;
+}
+
+.desktop-title-bar__btn {
+    width: 1.55rem;
+    height: 1.4rem;
+    border: none;
+    border-radius: 0.35rem;
+    background: transparent;
+    color: $gray1;
+    font-size: 0.92rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+        background: $gray5;
+        color: $white;
+    }
+}
+
+.desktop-title-bar__btn--close:hover {
+    background: $red;
+    color: $white;
+}
+
+#app-grid.desktop_tauri {
+    height: calc(100% - 2rem);
+}
+
 .designatedOS .r-sidebar {
     &::-webkit-scrollbar {
         display: none;

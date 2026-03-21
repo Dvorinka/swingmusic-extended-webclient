@@ -16,17 +16,17 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
         </h2>
         <div class="header-actions">
           <button 
-            @click="refreshStatus" 
-            :disabled="loading"
+            :disabled="loading" 
             class="refresh-btn"
             title="Refresh quality status"
+            @click="refreshStatus"
           >
             <Icon name="refresh-cw" :class="{ 'animate-spin': loading }" />
           </button>
           <button 
-            @click="showAdvancedSettings = !showAdvancedSettings"
             class="advanced-btn"
             title="Advanced settings"
+            @click="showAdvancedSettings = !showAdvancedSettings"
           >
             <Icon name="sliders" />
           </button>
@@ -96,7 +96,7 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
     <div v-if="showAdvancedSettings" class="advanced-settings">
       <div class="settings-header">
         <h3>Advanced Audio Settings</h3>
-        <button @click="showAdvancedSettings = false" class="close-btn">
+        <button class="close-btn" @click="showAdvancedSettings = false">
           <Icon name="x" />
         </button>
       </div>
@@ -108,10 +108,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.adaptive_quality"
-                @change="updateSettings"
+                v-model="settings.adaptive_quality" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Adaptive Quality
             </label>
@@ -121,10 +121,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.network_aware_quality"
-                @change="updateSettings"
+                v-model="settings.network_aware_quality" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Network-Aware Quality
             </label>
@@ -134,10 +134,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.device_specific_quality"
-                @change="updateSettings"
+                v-model="settings.device_specific_quality" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Device-Specific Quality
             </label>
@@ -152,8 +152,8 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
             <label class="setting-label">Format</label>
             <select 
               v-model="settings.download_format" 
-              @change="updateSettings"
               class="setting-select"
+              @change="updateSettings"
             >
               <option v-for="format in supportedFormats" :key="format.key" :value="format.key">
                 {{ format.name }} ({{ format.description }})
@@ -165,8 +165,8 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
             <label class="setting-label">Sample Rate</label>
             <select 
               v-model="settings.download_sample_rate" 
-              @change="updateSettings"
               class="setting-select"
+              @change="updateSettings"
             >
               <option value="44.1kHz">44.1 kHz (CD Quality)</option>
               <option value="48kHz">48 kHz (Professional)</option>
@@ -179,8 +179,8 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
             <label class="setting-label">Bit Depth</label>
             <select 
               v-model="settings.download_bit_depth" 
-              @change="updateSettings"
               class="setting-select"
+              @change="updateSettings"
             >
               <option value="16bit">16-bit</option>
               <option value="24bit">24-bit</option>
@@ -195,10 +195,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_loudness_normalization"
-                @change="updateSettings"
+                v-model="settings.enable_loudness_normalization" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Loudness Normalization
             </label>
@@ -206,13 +206,13 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
             <div v-if="settings.enable_loudness_normalization" class="sub-setting">
               <label class="sub-label">Target Loudness (LUFS)</label>
               <input 
-                type="range" 
                 v-model="settings.target_loudness" 
+                type="range" 
                 min="-23" 
                 max="-8" 
                 step="0.5"
-                @change="updateSettings"
                 class="setting-range"
+                @change="updateSettings"
               />
               <span class="range-value">{{ settings.target_loudness }} LUFS</span>
             </div>
@@ -221,10 +221,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_adaptive_eq"
-                @change="updateSettings"
+                v-model="settings.enable_adaptive_eq" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Adaptive EQ
             </label>
@@ -234,10 +234,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_spatial_audio_processing"
-                @change="updateSettings"
+                v-model="settings.enable_spatial_audio_processing" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Spatial Audio Processing
             </label>
@@ -246,8 +246,8 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
               <label class="sub-label">Spatial Format</label>
               <select 
                 v-model="settings.spatial_audio_format" 
-                @change="updateSettings"
                 class="setting-select"
+                @change="updateSettings"
               >
                 <option value="stereo">Stereo</option>
                 <option value="binaural">Binaural</option>
@@ -264,23 +264,23 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_crossfade"
-                @change="updateSettings"
+                v-model="settings.enable_crossfade" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Crossfade
             </label>
             <div v-if="settings.enable_crossfade" class="sub-setting">
               <label class="sub-label">Duration (seconds)</label>
               <input 
-                type="range" 
                 v-model="settings.crossfade_duration" 
+                type="range" 
                 min="0.5" 
                 max="10" 
                 step="0.5"
-                @change="updateSettings"
                 class="setting-range"
+                @change="updateSettings"
               />
               <span class="range-value">{{ settings.crossfade_duration }}s</span>
             </div>
@@ -289,10 +289,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_gapless_playback"
-                @change="updateSettings"
+                v-model="settings.enable_gapless_playback" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               Gapless Playback
             </label>
@@ -302,10 +302,10 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="setting-group">
             <label class="setting-label">
               <input 
-                type="checkbox" 
-                v-model="settings.enable_replaygain"
-                @change="updateSettings"
+                v-model="settings.enable_replaygain" 
+                type="checkbox"
                 class="setting-checkbox"
+                @change="updateSettings"
               />
               ReplayGain
             </label>
@@ -334,8 +334,8 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
             ref="fileInput" 
             type="file" 
             accept="audio/*" 
-            @change="handleFileSelect" 
-            style="display: none"
+            style="display: none" 
+            @change="handleFileSelect"
           />
         </div>
         
@@ -344,9 +344,9 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           <div class="format-checkboxes">
             <label v-for="format in availableFormats" :key="format.key" class="format-checkbox">
               <input 
+                v-model="selectedFormats" 
                 type="checkbox" 
-                :value="format.key" 
-                v-model="selectedFormats"
+                :value="format.key"
                 class="checkbox-input"
               />
               <span class="checkbox-label">{{ format.name }}</span>
@@ -354,11 +354,11 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
           </div>
           
           <button 
-            @click="startComparison" 
-            :disabled="selectedFormats.length === 0 || comparing"
+            :disabled="selectedFormats.length === 0 || comparing" 
             class="compare-btn primary"
+            @click="startComparison"
           >
-            <Icon name="bar-chart" v-if="!comparing" />
+            <Icon v-if="!comparing" name="bar-chart" />
             <div v-else class="loading-spinner"></div>
             {{ comparing ? 'Comparing...' : 'Start Comparison' }}
           </button>
@@ -436,7 +436,7 @@ including quality comparison, format analysis, enhancement controls, and adaptiv
       <div v-if="!audioAnalysis" class="analysis-placeholder">
         <Icon name="activity" class="placeholder-icon" />
         <p>Select a file to analyze its audio characteristics</p>
-        <button @click="selectFile" class="primary-btn">
+        <button class="primary-btn" @click="selectFile">
           Select File
         </button>
       </div>

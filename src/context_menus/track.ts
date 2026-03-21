@@ -8,6 +8,7 @@ import { addTracksToPlaylist, removeTracks } from '@/requests/playlists'
 
 import { AddToQueueIcon, AlbumIcon, ArtistIcon, DeleteIcon, FolderIcon, PlayNextIcon, PlusIcon } from '@/icons'
 import usePlaylistStore from '@/stores/pages/playlist'
+import usePlaylistsStore from '@/stores/pages/playlists'
 import useQueueStore from '@/stores/queue'
 import useTracklist from '@/stores/queue/tracklist'
 import { getAddToPlaylistOptions, get_find_on_social } from './utils'
@@ -50,9 +51,14 @@ export default async (track: Track): Promise<Option[]> => {
 
     const AddToPlaylistAction = (playlist: Playlist) => {
         addTracksToPlaylist(playlist, [track]).then(success => {
+            if (!success) return
+            
+            // Update playlist count in the playlists store for the PlaylistList page
+            const playlistsStore = usePlaylistsStore()
+            playlistsStore.incrementPlaylistCount(playlist.id)
+            
             if (!(route.name == Routes.playlist && parseInt(route.params.pid as string) == playlist.id)) return
 
-            if (!success) return
             const store = usePlaylistStore()
             store.addTrack(track)
             store.fetchAll(parseInt(route.params.pid as string), true)
@@ -184,5 +190,3 @@ export default async (track: Track): Promise<Option[]> => {
 
     return options
 }
-
-// TODO: Find a way to fetch playlists lazily. ie. When the "Add to playlist" option is triggered.
