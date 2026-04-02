@@ -36,6 +36,82 @@
             </button>
         </div>
     </header>
+    <div v-if="showDesktopConnectionGate" class="desktop-connection-gate">
+        <div class="desktop-connection-gate__card rounded">
+            <h2>Connect Desktop App</h2>
+            <p>
+                Connect to a running SwingMusic web server before continuing.
+            </p>
+            <label>
+                Server URL
+                <input
+                    v-model="desktopServerUrl"
+                    class="desktop-connection-gate__input rounded"
+                    type="url"
+                    placeholder="http://localhost:1970"
+                    autocomplete="off"
+                />
+            </label>
+            <div class="desktop-connection-gate__modes">
+                <button
+                    class="desktop-connection-gate__mode rounded"
+                    :class="{ active: desktopAuthMode === 'pair' }"
+                    @click="desktopAuthMode = 'pair'"
+                >
+                    Pair Code
+                </button>
+                <button
+                    class="desktop-connection-gate__mode rounded"
+                    :class="{ active: desktopAuthMode === 'manual' }"
+                    @click="desktopAuthMode = 'manual'"
+                >
+                    Username & Password
+                </button>
+            </div>
+            <template v-if="desktopAuthMode === 'pair'">
+                <label>
+                    Pair Code
+                    <input
+                        v-model="desktopPairCode"
+                        class="desktop-connection-gate__input rounded"
+                        type="text"
+                        placeholder="ABC123"
+                        autocomplete="off"
+                    />
+                </label>
+            </template>
+            <template v-else>
+                <label>
+                    Username
+                    <input
+                        v-model="desktopUsername"
+                        class="desktop-connection-gate__input rounded"
+                        type="text"
+                        autocomplete="username"
+                    />
+                </label>
+                <label>
+                    Password
+                    <input
+                        v-model="desktopPassword"
+                        class="desktop-connection-gate__input rounded"
+                        type="password"
+                        autocomplete="current-password"
+                    />
+                </label>
+            </template>
+            <button
+                class="desktop-connection-gate__submit rounded"
+                :disabled="desktopConnecting || !canConnectDesktop"
+                @click="connectDesktopSession"
+            >
+                {{ desktopConnecting ? 'Connecting...' : 'Connect' }}
+            </button>
+            <p v-if="desktopConnectionError" class="desktop-connection-gate__error">
+                {{ desktopConnectionError }}
+            </p>
+        </div>
+    </div>
     <ContextMenu />
     <Modal />
     <Notification />
@@ -71,7 +147,7 @@
 // @libraries
 import { vElementSize } from "@vueuse/components";
 import { onStartTyping } from "@vueuse/core";
-import { onMounted, Ref, ref } from "vue";
+import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
 import { useRouter } from "vue-router";
 import { BalancerProvider } from "vue-wrap-balancer";
 
@@ -101,12 +177,44 @@ import RightSideBar from "@/components/RightSideBar/Main.vue";
 
 import { getAllSettings } from "@/requests/settings";
 import { getRootDirs } from "@/requests/settings/rootdirs";
+import { setApiAuthToken, setBaseUrl } from "@/config";
 import { getLoggedInUser } from "./requests/auth";
 import { getSetupStatus } from "./requests/setup";
 // import BubbleManager from "./components/bubbles/BinManager.vue";
 
 const appcontent: Ref<HTMLLegendElement | null> = ref(null);
 const isDesktopTauri = ref(false);
+const desktopAuthenticated = ref(false);
+const desktopConnecting = ref(false);
+const desktopConnectionError = ref("");
+const desktopServerUrl = ref("http://localhost:1970");
+const desktopAuthMode = ref<"pair" | "manual">("pair");
+const desktopPairCode = ref("");
+const desktopUsername = ref("");
+const desktopPassword = ref("");
+
+const showDesktopConnectionGate = computed(
+    () => isDesktopTauri.value && !desktopAuthenticated.value,
+);
+
+const canConnectDesktop = computed(() => {
+    if (!desktopServerUrl.value.trim()) return false;
+    if (desktopAuthMode.value === "pair") {
+        return desktopPairCode.value.trim().length > 0;
+    }
+    return (
+        desktopUsername.value.trim().length > 0 &&
+        desktopPassword.value.length > 0
+    );
+});
+
+interface DesktopConnectionResponse {
+    connected: boolean;
+    baseUrl: string;
+    accessToken: string;
+    refreshToken?: string | null;
+    username: string;
+}
 const auth = useAuth();
 const queue = useQueue();
 const modal = useModal();
@@ -156,18 +264,13 @@ function handleRootDirsPrompt() {
     });
 }
 
-onMounted(async () => {
-    isDesktopTauri.value = Boolean((window as any).__TAURI__);
-
-    const { width, height } = getContentSize();
-    updateContentElemSize({ width, height });
-
+async function initializeAuthenticatedApp() {
     const res = await getLoggedInUser();
 
     if (res.status == 200) {
         auth.setUser(res.data);
     } else {
-        return;
+        throw new Error("Authentication failed");
     }
 
     const setupRes = await getSetupStatus();
@@ -177,7 +280,6 @@ onMounted(async () => {
     }
 
     settings.initializeVolume();
-
     handleRootDirsPrompt();
 
     getAllSettings()
@@ -189,6 +291,85 @@ onMounted(async () => {
                 lyrics.checkExists(queue.currenttrack.filepath, queue.currenttrack.trackhash);
             }
         });
+}
+
+async function connectDesktopSession() {
+    if (!canConnectDesktop.value) return;
+
+    desktopConnecting.value = true;
+    desktopConnectionError.value = "";
+
+    try {
+        const { invoke } = await import("@tauri-apps/api/tauri");
+        const response = await invoke<DesktopConnectionResponse>("connect_to_web_app", {
+            request: {
+                url: desktopServerUrl.value.trim(),
+                pairingCode:
+                    desktopAuthMode.value === "pair"
+                        ? desktopPairCode.value.trim().toUpperCase()
+                        : "",
+                username:
+                    desktopAuthMode.value === "manual"
+                        ? desktopUsername.value.trim()
+                        : null,
+                password:
+                    desktopAuthMode.value === "manual"
+                        ? desktopPassword.value
+                        : null,
+            },
+        });
+
+        if (!response.connected || !response.baseUrl || !response.accessToken) {
+            throw new Error("Connection response was invalid");
+        }
+
+        setBaseUrl(response.baseUrl);
+        setApiAuthToken(response.accessToken);
+        localStorage.setItem("desktop.webapp.url", response.baseUrl);
+
+        desktopAuthenticated.value = true;
+        desktopConnectionError.value = "";
+
+        await initializeAuthenticatedApp();
+    } catch (error) {
+        desktopAuthenticated.value = false;
+        desktopConnectionError.value = String(error);
+    } finally {
+        desktopConnecting.value = false;
+    }
+}
+
+function handleDesktopAuthRequired() {
+    if (!isDesktopTauri.value) return;
+    desktopAuthenticated.value = false;
+    setApiAuthToken();
+    desktopConnectionError.value =
+        "Session expired or unauthorized. Reconnect to continue.";
+}
+
+onMounted(async () => {
+    isDesktopTauri.value = Boolean((window as any).__TAURI__);
+    window.addEventListener("desktop-auth-required", handleDesktopAuthRequired);
+
+    if (isDesktopTauri.value) {
+        const lastUrl = localStorage.getItem("desktop.webapp.url");
+        if (lastUrl) {
+            desktopServerUrl.value = lastUrl;
+        }
+    }
+
+    const { width, height } = getContentSize();
+    updateContentElemSize({ width, height });
+
+    if (isDesktopTauri.value) {
+        return;
+    }
+
+    await initializeAuthenticatedApp();
+});
+
+onUnmounted(() => {
+    window.removeEventListener("desktop-auth-required", handleDesktopAuthRequired);
 });
 
 async function minimizeWindow() {
@@ -308,6 +489,96 @@ export default defineComponent({
 .desktop-title-bar__btn--close:hover {
     background: $red;
     color: $white;
+}
+
+.desktop-connection-gate {
+    position: fixed;
+    inset: 2rem 0 0 0;
+    z-index: 9500;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(10px);
+}
+
+.desktop-connection-gate__card {
+    width: min(420px, 100%);
+    padding: 1.1rem;
+    background: $gray5;
+    border: 1px solid $gray4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    color: $white;
+
+    h2 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: $gray1;
+    }
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.34rem;
+        font-size: 0.79rem;
+        color: $gray1;
+    }
+}
+
+.desktop-connection-gate__input {
+    border: 1px solid $gray3;
+    background: $gray4;
+    color: $white;
+    padding: 0.55rem 0.62rem;
+    font-family: inherit;
+    font-size: 0.86rem;
+}
+
+.desktop-connection-gate__modes {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.desktop-connection-gate__mode {
+    border: 1px solid $gray3;
+    background: transparent;
+    color: $gray1;
+    padding: 0.5rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+
+    &.active {
+        border-color: $orange;
+        color: $white;
+        background: rgba($orange, 0.15);
+    }
+}
+
+.desktop-connection-gate__submit {
+    margin-top: 0.25rem;
+    border: none;
+    background: $orange;
+    color: $body;
+    font-weight: 700;
+    padding: 0.62rem;
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: default;
+    }
+}
+
+.desktop-connection-gate__error {
+    color: $red !important;
+    font-size: 0.79rem !important;
 }
 
 #app-grid.desktop_tauri {

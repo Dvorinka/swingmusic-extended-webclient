@@ -48,7 +48,6 @@ const musicCatalog = {
 
 export const menus = [
   home,
-  library,
   {
     name: "search",
     route_name: Routes.search,
@@ -56,22 +55,12 @@ export const menus = [
     query: () => ({ q: useSearch().query }),
     icon: SearchSvg,
   },
+  library,
   {
     separator: true,
   },
   favorites,
   playlists,
-  universalDownloader,
-  musicCatalog,
-  {
-    separator: true,
-  },
-  {
-    name: "settings",
-    route_name: Routes.settings,
-    params: { tab: "general" },
-    icon: SettingsSvg,
-  },
 ];
 
 export const topnavitems = [

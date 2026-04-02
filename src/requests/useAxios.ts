@@ -6,6 +6,8 @@ import useLoaderStore from '@/stores/loader'
 import { logoutUser } from './auth'
 import { getBaseUrl } from '@/config'
 
+const isDesktopTauri = Boolean((window as any).__TAURI__)
+
 if (window.location.protocol === 'https:') {
     const meta = document.createElement('meta');
     meta.httpEquiv = 'Content-Security-Policy';
@@ -36,7 +38,7 @@ export default async (args: FetchProps, withCredentials: boolean = true) => {
             method: args.method || 'POST',
             // INFO: Add ngrok header and provided headers
             headers: { ...args.headers, ...(on_ngrok ? ngrok_config : {}) },
-            withCredentials: withCredentials,
+            withCredentials: isDesktopTauri ? false : withCredentials,
         })
 
         stopLoading()
@@ -49,7 +51,11 @@ export default async (args: FetchProps, withCredentials: boolean = true) => {
 
         // was unauthorized
         if (error.response?.status === 401) {
-            useModal().showLoginModal()
+            if (isDesktopTauri) {
+                window.dispatchEvent(new CustomEvent('desktop-auth-required'))
+            } else {
+                useModal().showLoginModal()
+            }
         }
 
         if (error.response?.status === 423 && error.response?.data?.error === 'setup_incomplete') {

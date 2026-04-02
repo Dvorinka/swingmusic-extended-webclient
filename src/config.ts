@@ -2,21 +2,48 @@ import axios from 'axios'
 
 const development = import.meta.env.DEV
 const backendPort = import.meta.env.VITE_SWINGMUSIC_BACKEND_PORT || '1970'
+let runtimeBaseUrl = ''
 
-export function getBaseUrl() {
+function normalizeBaseUrl(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    return trimmed.replace(/\/+$/, '')
+}
+
+function resolveInitialBaseUrl() {
     if (!development) {
         return ''
     }
 
-    const base_url = window.location.origin
-    const splits = base_url.split(':')
-    return base_url.replace(splits[splits.length - 1], backendPort)
+    const baseUrl = window.location.origin
+    const splits = baseUrl.split(':')
+    return baseUrl.replace(splits[splits.length - 1], backendPort)
 }
 
-const base_url = getBaseUrl()
-axios.defaults.baseURL = base_url
+export function getBaseUrl() {
+    return runtimeBaseUrl
+}
 
-const baseImgUrl = base_url + '/img'
+export function setBaseUrl(baseUrl: string) {
+    runtimeBaseUrl = normalizeBaseUrl(baseUrl)
+    axios.defaults.baseURL = runtimeBaseUrl
+}
+
+export function setApiAuthToken(token?: string) {
+    if (token && token.trim()) {
+        axios.defaults.headers.common.Authorization = `Bearer ${token.trim()}`
+        return
+    }
+
+    delete axios.defaults.headers.common.Authorization
+}
+
+setBaseUrl(resolveInitialBaseUrl())
+
+function baseImgUrl() {
+    const baseUrl = getBaseUrl()
+    return `${baseUrl}/img`
+}
 
 const imageRoutes = {
     thumb: {
@@ -246,20 +273,40 @@ export const paths = {
     },
     images: {
         thumb: {
-            small: baseImgUrl + imageRoutes.thumb.small,
-            smallish: baseImgUrl + imageRoutes.thumb.smallish,
-            large: baseImgUrl + imageRoutes.thumb.large,
-            medium: baseImgUrl + imageRoutes.thumb.medium,
+            get small() {
+                return baseImgUrl() + imageRoutes.thumb.small
+            },
+            get smallish() {
+                return baseImgUrl() + imageRoutes.thumb.smallish
+            },
+            get large() {
+                return baseImgUrl() + imageRoutes.thumb.large
+            },
+            get medium() {
+                return baseImgUrl() + imageRoutes.thumb.medium
+            },
         },
         artist: {
-            small: baseImgUrl + imageRoutes.artist.small,
-            large: baseImgUrl + imageRoutes.artist.large,
-            medium: baseImgUrl + imageRoutes.artist.medium,
+            get small() {
+                return baseImgUrl() + imageRoutes.artist.small
+            },
+            get large() {
+                return baseImgUrl() + imageRoutes.artist.large
+            },
+            get medium() {
+                return baseImgUrl() + imageRoutes.artist.medium
+            },
         },
-        playlist: baseImgUrl + imageRoutes.playlist,
+        get playlist() {
+            return baseImgUrl() + imageRoutes.playlist
+        },
         mix: {
-            medium: baseImgUrl + '/mix/medium/',
-            small: baseImgUrl + '/mix/small/',
+            get medium() {
+                return baseImgUrl() + '/mix/medium/'
+            },
+            get small() {
+                return baseImgUrl() + '/mix/small/'
+            },
         },
     },
 }
