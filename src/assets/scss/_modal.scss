@@ -1,0 +1,225 @@
+// Unified Modal Design System
+// Provides consistent styling for all modals across the application
+
+// Modal Design Tokens
+$modal-bg: linear-gradient(145deg, rgba(12, 18, 30, 0.98), rgba(8, 12, 22, 0.96));
+$modal-border: rgba(100, 140, 200, 0.18);
+$modal-surface: rgba(20, 28, 45, 0.92);
+$modal-accent: $highlight-blue;
+$modal-accent-hover: lighten($highlight-blue, 8%);
+$modal-text-primary: rgba(255, 255, 255, 0.96);
+$modal-text-secondary: rgba(255, 255, 255, 0.68);
+$modal-text-muted: rgba(255, 255, 255, 0.48);
+$modal-input-bg: rgba(15, 22, 38, 0.9);
+$modal-input-border: rgba(100, 140, 200, 0.22);
+$modal-input-focus: rgba(0, 110, 255, 0.4);
+$modal-success: #4ade80;
+$modal-danger: #f87171;
+$modal-warning: #fbbf24;
+
+// Modal Base Styles Mixin
+@mixin modal-base {
+  font-family: "SF Compact Display", "Avenir Next", "Segoe UI", sans-serif;
+  color: $modal-text-primary;
+}
+
+// Modal Input Styles Mixin
+@mixin modal-input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid $modal-input-border;
+  border-radius: 0.75rem;
+  background: $modal-input-bg;
+  color: $modal-text-primary;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: $modal-text-muted;
+  }
+
+  &:focus {
+    border-color: $modal-accent;
+    box-shadow: 0 0 0 3px $modal-input-focus;
+  }
+}
+
+// Modal Button Mixins
+@mixin modal-button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@mixin modal-button-primary {
+  @include modal-button-base;
+  background: linear-gradient(135deg, $modal-accent, darken($modal-accent, 12%));
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.2);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $modal-accent-hover, darken($modal-accent-hover, 12%));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 110, 255, 0.3);
+  }
+}
+
+@mixin modal-button-secondary {
+  @include modal-button-base;
+  background: rgba(255, 255, 255, 0.06);
+  color: $modal-text-primary;
+  border-color: $modal-input-border;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(100, 140, 200, 0.35);
+  }
+}
+
+@mixin modal-button-danger {
+  @include modal-button-base;
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.35);
+
+  &:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.25);
+    border-color: rgba(248, 113, 113, 0.5);
+  }
+}
+
+@mixin modal-button-ghost {
+  @include modal-button-base;
+  background: transparent;
+  color: $modal-text-secondary;
+  border-color: transparent;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: $modal-text-primary;
+  }
+}
+
+// Modal Card/Section Mixin
+@mixin modal-card {
+  background: $modal-surface;
+  border: 1px solid $modal-border;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+// Modal Section Title Mixin
+@mixin modal-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: $modal-text-muted;
+  margin-bottom: 0.75rem;
+}
+
+// Modal Help Text Mixin
+@mixin modal-help-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: $modal-text-secondary;
+}
+
+// Modal Divider Mixin
+@mixin modal-divider {
+  height: 1px;
+  background: $modal-border;
+  margin: 1.25rem 0;
+}
+
+// Path Selection Item Mixin
+@mixin path-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid $modal-input-border;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 110, 255, 0.08);
+    border-color: rgba(0, 110, 255, 0.3);
+  }
+
+  &.selected {
+    background: rgba(0, 110, 255, 0.12);
+    border-color: $modal-accent;
+  }
+}
+
+// Progress Bar Mixin
+@mixin modal-progress-bar {
+  height: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $modal-accent, lighten($modal-accent, 15%));
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+}
+
+// Badge/Status Pill Mixin
+@mixin modal-status-badge($bg-color, $text-color) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba($bg-color, 0.15);
+  color: $text-color;
+  border: 1px solid rgba($bg-color, 0.25);
+}
+
+// Responsive adjustments for modals
+@mixin modal-responsive {
+  @include allPhones {
+    padding: 1.5rem 1rem;
+
+    .modal-title {
+      font-size: 1.5rem;
+    }
+
+    .modal-actions {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

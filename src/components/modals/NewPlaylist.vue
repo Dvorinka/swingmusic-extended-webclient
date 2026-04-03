@@ -154,31 +154,35 @@ function create(e: Event) {
 
 <style lang="scss">
 .playlist-modal {
-  grid-gap: 1rem;
-  margin-top: 1rem;
+  @include modal-base;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
 
   label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: $gray1;
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 0.5rem;
+  }
+
+  input {
+    @include modal-input;
   }
 
   .submit {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    margin-top: 0.5rem;
   }
 
   button {
-    margin: 0 auto;
-    width: 8rem;
-    padding: 1.25rem;
-    // font-weight: normal;
-    background-color: $white;
-    color: $black;
-
-    &:hover {
-      color: $white;
-    }
+    @include modal-button-primary;
+    min-width: 8rem;
   }
 }
 </style>

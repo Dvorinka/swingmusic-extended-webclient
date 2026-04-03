@@ -257,197 +257,210 @@ const removeDownload = async (downloadId: string) => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .desktop-downloads {
-  padding: 20px;
+  @include modal-base;
+  padding: 1.25rem;
   height: 100%;
   overflow-y: auto;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
 }
 
+// Header
 .downloads-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-}
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
-.downloads-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.96);
+    letter-spacing: -0.02em;
+  }
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
-.btn-primary, .btn-secondary {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
+// Buttons
 .btn-primary {
-  background: var(--accent-primary);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--accent-primary-hover);
+  @include modal-button-primary;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
 }
 
 .btn-secondary {
-  background: var(--background-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-primary);
+  @include modal-button-secondary;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
 }
 
-.btn-secondary:hover {
-  background: var(--background-tertiary);
-}
+// Sections
+.active-downloads,
+.completed-downloads {
+  margin-bottom: 2rem;
 
-.active-downloads, .completed-downloads {
-  margin-bottom: 32px;
-}
-
-.active-downloads h3, .completed-downloads h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
+  h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 }
 
 .download-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
+// Download Item
 .download-item {
   display: flex;
   align-items: center;
-  padding: 16px;
-  background: var(--background-secondary);
-  border-radius: 8px;
-  border: 1px solid var(--border-primary);
-}
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
 
-.download-item.active {
-  border-left: 4px solid var(--accent-primary);
-}
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 
-.download-item.completed {
-  border-left: 4px solid var(--accent-success);
+  &.active {
+    border-left: 3px solid $highlight-blue;
+    background: rgba(0, 110, 255, 0.04);
+  }
+
+  &.completed {
+    border-left: 3px solid #4ade80;
+    background: rgba(74, 222, 128, 0.03);
+  }
 }
 
 .download-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   flex: 1;
+  min-width: 0;
 }
 
 .download-cover-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  background: var(--background-tertiary);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
 .download-details {
   flex: 1;
+  min-width: 0;
 }
 
 .download-title {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .download-quality {
   margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
+// Progress
 .download-progress {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 16px;
+  gap: 0.75rem;
+  margin: 0 1rem;
+
+  .progress-bar {
+    @include modal-progress-bar;
+    width: 6rem;
+    height: 0.375rem;
+  }
+
+  .progress-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 2.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
-.progress-bar {
-  width: 120px;
-  height: 6px;
-  background: var(--background-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--accent-primary);
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-  min-width: 40px;
-}
-
+// Actions
 .download-actions {
   display: flex;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .btn-icon {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border: none;
   background: transparent;
-  border-radius: 4px;
+  border-radius: 0.375rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  transition: background-color 0.2s;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.6);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &.danger:hover {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+  }
 }
 
-.btn-icon:hover {
-  background: var(--background-tertiary);
-}
-
-.btn-icon.danger:hover {
-  background: var(--accent-error);
-  color: white;
-}
-
+// Status
 .download-status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 16px;
+  gap: 0.5rem;
+  margin: 0 1rem;
+
+  .status-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4ade80;
+  }
 }
 
-.status-text {
-  font-size: 14px;
-  color: var(--accent-success);
-  font-weight: 500;
-}
-
+// Empty State
 .empty-state {
   flex: 1;
   display: flex;
@@ -455,25 +468,74 @@ const removeDownload = async (downloadId: string) => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 16px;
-  padding: 60px 20px;
+  gap: 1rem;
+  padding: 4rem 1.25rem;
+
+  .empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    font-size: 2rem;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 20rem;
+  }
 }
 
-.empty-icon {
-  font-size: 64px;
-  opacity: 0.5;
-}
+// Responsive
+@include allPhones {
+  .desktop-downloads {
+    padding: 1rem;
+  }
 
-.empty-state h3 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
+  .downloads-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
 
-.empty-state p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-tertiary);
+    .header-actions {
+      width: 100%;
+
+      .btn-primary,
+      .btn-secondary {
+        flex: 1;
+      }
+    }
+  }
+
+  .download-item {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .download-progress {
+    width: 100%;
+    margin: 0.5rem 0 0;
+
+    .progress-bar {
+      flex: 1;
+    }
+  }
+
+  .download-actions {
+    margin-left: auto;
+  }
 }
 </style>
