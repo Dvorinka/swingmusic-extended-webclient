@@ -563,6 +563,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss">
+@import "@/assets/scss/_modal.scss";
+
 .loginmodal {
   @include modal-base;
   display: flex;

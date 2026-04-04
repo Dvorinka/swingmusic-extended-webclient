@@ -175,12 +175,13 @@ onMounted(() => {
   fetchDirs("$root");
   getRootDirs().then((_dirs) => {
     selected.value = _dirs;
-    prev_selected.push(..._dirs);
   });
 });
 </script>
 
 <style lang="scss">
+@import "@/assets/scss/_modal.scss";
+
 .folder-browser-modal {
   @include modal-base;
   display: flex;

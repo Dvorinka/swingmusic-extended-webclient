@@ -22,6 +22,8 @@ defineProps<{
 </script>
 
 <style lang="scss">
+@import "@/assets/scss/_modal.scss";
+
 .confirm-modal {
   @include modal-base;
   display: flex;

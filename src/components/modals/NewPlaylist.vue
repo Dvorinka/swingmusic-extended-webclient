@@ -153,7 +153,9 @@ function create(e: Event) {
 </script>
 
 <style lang="scss">
-.playlist-modal {
+@import "@/assets/scss/_modal.scss";
+
+.new-playlist-modal {
   @include modal-base;
   display: flex;
   flex-direction: column;
